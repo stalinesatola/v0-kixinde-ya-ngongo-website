@@ -16,7 +16,7 @@ const contactInfo = [
   {
     icon: Phone,
     title: "Telefone",
-    details: ["+244 923 000 000"],
+    details: ["+244 926 899 866"],
   },
   {
     icon: Mail,
@@ -26,7 +26,7 @@ const contactInfo = [
   {
     icon: MessageCircle,
     title: "WhatsApp",
-    details: ["+244 923 000 000"],
+    details: ["+244 926 899 866"],
   },
 ]
 
@@ -83,7 +83,7 @@ export default function ContactoPage() {
               {/* WhatsApp CTA */}
               <div className="mt-10">
                 <a
-                  href="https://wa.me/244923000000?text=Olá! Gostaria de mais informações sobre os serviços da KIXINDE YA NGONGO."
+                  href="https://wa.me/244926899866?text=Olá! Gostaria de mais informações sobre os serviços da KIXINDE YA NGONGO."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 rounded-lg bg-[#25D366] px-6 py-3 text-sm font-semibold text-[#ffffff] hover:bg-[#20b858] transition-colors font-sans"
@@ -154,7 +154,7 @@ export default function ContactoPage() {
                           id="contact-phone"
                           required
                           type="tel"
-                          placeholder="+244 923 000 000"
+                          placeholder="+244 926 899 866"
                           className="font-sans"
                         />
                       </div>

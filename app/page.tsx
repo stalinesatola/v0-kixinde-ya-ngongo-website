@@ -55,7 +55,7 @@ export default function HomePage() {
               </Button>
               <Button asChild variant="outline" size="lg" className="border-[#ffffff]/30 text-[#ffffff] hover:bg-[#ffffff]/10 font-sans px-8">
                 <a
-                  href="https://wa.me/244923000000?text=Olá! Gostaria de mais informações."
+                  href="https://wa.me/244926899866?text=Olá! Gostaria de mais informações."
                   target="_blank"
                   rel="noopener noreferrer"
                 >

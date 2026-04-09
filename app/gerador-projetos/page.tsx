@@ -356,7 +356,7 @@ export default function GeradorProjetosPage() {
                   Nova Simulacao
                 </Button>
                 <Button asChild className="bg-[#F7A71C] text-[#303030] hover:bg-[#d99116] font-sans font-semibold">
-                  <a href="https://wa.me/244923000000?text=Olá, gerei um projecto conceptual e gostaria de avançar." target="_blank" rel="noopener noreferrer">
+                  <a href="https://wa.me/244926899866?text=Olá, gerei um projecto conceptual e gostaria de avançar." target="_blank" rel="noopener noreferrer">
                     Falar com Equipa Tecnica
                   </a>
                 </Button>
@@ -402,7 +402,7 @@ export default function GeradorProjetosPage() {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="phone" className="text-sm font-medium font-sans">Telefone</Label>
-                  <Input id="phone" required type="tel" placeholder="+244 923 000 000" value={formData.phone} onChange={(e) => update("phone", e.target.value)} className="font-sans" />
+                  <Input id="phone" required type="tel" placeholder="+244 926 899 866" value={formData.phone} onChange={(e) => update("phone", e.target.value)} className="font-sans" />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="email" className="text-sm font-medium font-sans">Email</Label>
