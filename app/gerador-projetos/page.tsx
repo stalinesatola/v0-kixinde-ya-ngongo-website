@@ -154,21 +154,42 @@ export default function GeradorProjetosPage() {
   // Calculate area and perimeter from dimensions
   const calculateFromDimensions = (dimensions: string, shape: string) => {
     if (shape === "regular") {
-      // Parse dimensions like "20m x 25m" or "20x25" or "20 x 25"
-      const match = dimensions.match(/(\d+(?:\.\d+)?)\s*[mx×]\s*(\d+(?:\.\d+)?)/i)
+      // Clean the input: remove "m", "M", extra spaces, and normalize separators
+      const cleanedInput = dimensions
+        .replace(/m/gi, '') // Remove "m" or "M"
+        .replace(/\s+/g, '') // Remove all spaces
+        .trim()
+      
+      // Parse dimensions like "30x50", "30X50", "30×50"
+      const match = cleanedInput.match(/^(\d+(?:[.,]\d+)?)[x×X](\d+(?:[.,]\d+)?)$/i)
+      
       if (match) {
-        const width = parseFloat(match[1])
-        const length = parseFloat(match[2])
-        const area = width * length
-        const perimeter = 2 * (width + length)
-        return { area: area.toFixed(2), perimeter: perimeter.toFixed(2), width, length }
+        // Replace comma with dot for proper float parsing
+        const width = parseFloat(match[1].replace(',', '.'))
+        const length = parseFloat(match[2].replace(',', '.'))
+        
+        // Validate numbers
+        if (!isNaN(width) && !isNaN(length) && width > 0 && length > 0) {
+          const area = width * length
+          const perimeter = 2 * (width + length)
+          return { 
+            area: area.toFixed(2), 
+            perimeter: perimeter.toFixed(2), 
+            width, 
+            length 
+          }
+        }
       }
     } else if (shape === "irregular") {
       // For irregular, parse comma-separated sides like "10, 15, 12, 8, 20"
-      const sides = dimensions.split(/[,;]/).map(s => parseFloat(s.trim())).filter(n => !isNaN(n))
+      const sides = dimensions
+        .replace(/m/gi, '') // Remove "m"
+        .split(/[,;]/)
+        .map(s => parseFloat(s.trim().replace(',', '.')))
+        .filter(n => !isNaN(n) && n > 0)
+      
       if (sides.length >= 3) {
         const perimeter = sides.reduce((sum, side) => sum + side, 0)
-        // For better accuracy, user should input area directly
         return { area: "", perimeter: perimeter.toFixed(2), sides }
       }
     }
@@ -178,7 +199,9 @@ export default function GeradorProjetosPage() {
   const handleDimensionsChange = (value: string) => {
     update("dimensions", value)
     const calculated = calculateFromDimensions(value, formData.terrainShape)
-    if (calculated.area && !formData.area) {
+    
+    // Always update area and perimeter when dimensions change
+    if (calculated.area) {
       update("area", calculated.area)
     }
     if (calculated.perimeter) {
