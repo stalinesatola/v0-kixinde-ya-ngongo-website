@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { TerrainMap } from "@/components/terrain-map"
+import { IrregularTerrainCalculator } from "@/components/irregular-terrain-calculator"
 
 const projectTypes = [
   { value: "Casa", icon: "🏠", subTypes: [] },
@@ -227,6 +228,11 @@ export default function GeradorProjetosPage() {
       `Olá! Estou interessado em gerar um projecto de ${formData.projectType || "arquitectura"}${formData.projectSubType ? ` (${formData.projectSubType})` : ""} em ${formData.location || "Angola"}. Podem ajudar-me?`
     )
     window.open(`https://wa.me/244926899866?text=${message}`, "_blank")
+  }
+
+  const handleIrregularCalculation = (area: string, perimeter: string) => {
+    update("area", area)
+    update("perimeter", perimeter)
   }
 
   const handleMapCoordinates = (lat: number, lng: number) => {
@@ -595,25 +601,7 @@ export default function GeradorProjetosPage() {
                     />
                     <p className="text-xs text-muted-foreground">Insira no formato: 20m x 25m ou 20x25</p>
                   </div>
-                ) : (
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="irregularSides" className="text-sm font-medium font-sans">Lados do Terreno (metros)</Label>
-                    <Input 
-                      id="irregularSides" 
-                      placeholder="ex: 10, 15, 12, 8, 20" 
-                      value={formData.irregularSides} 
-                      onChange={(e) => {
-                        update("irregularSides", e.target.value)
-                        const calculated = calculateFromDimensions(e.target.value, "irregular")
-                        if (calculated.perimeter) {
-                          update("perimeter", calculated.perimeter)
-                        }
-                      }} 
-                      className="font-sans" 
-                    />
-                    <p className="text-xs text-muted-foreground">Separe cada lado por virgula</p>
-                  </div>
-                )}
+                ) : null}
 
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="coordinates" className="text-sm font-medium font-sans">Coordenadas (Opcional)</Label>
@@ -621,8 +609,15 @@ export default function GeradorProjetosPage() {
                 </div>
               </div>
 
-              {/* Calculation Results Panel */}
-              {(formData.area || formData.perimeter) && (
+              {/* Irregular Terrain Calculator */}
+              {formData.terrainShape === "irregular" && (
+                <div className="mt-6">
+                  <IrregularTerrainCalculator onCalculation={handleIrregularCalculation} />
+                </div>
+              )}
+
+              {/* Calculation Results Panel - Only for regular terrain */}
+              {formData.terrainShape === "regular" && (formData.area || formData.perimeter) && (
                 <div className="mt-6 rounded-lg bg-[#F7A71C]/5 border border-[#F7A71C]/20 p-6">
                   <div className="flex items-center gap-2 mb-5">
                     <Ruler className="h-5 w-5 text-[#F7A71C]" />
@@ -712,32 +707,29 @@ export default function GeradorProjetosPage() {
                 </div>
               )}
 
-              {/* Area Input - Moved below calculation panel for better flow */}
-              <div className="mt-5">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="area" className="text-sm font-medium font-sans">
-                    Area do Terreno (m²) 
-                    {formData.terrainShape === "regular" && formData.area && (
-                      <span className="ml-2 text-xs text-[#F7A71C] font-semibold">✓ Calculado automaticamente</span>
-                    )}
-                  </Label>
-                  <Input 
-                    id="area" 
-                    required 
-                    type="number" 
-                    step="0.01"
-                    placeholder={formData.terrainShape === "irregular" ? "Insira a area manualmente" : "ex: 500"} 
-                    value={formData.area} 
-                    onChange={(e) => update("area", e.target.value)} 
-                    className={`font-sans text-lg font-semibold ${formData.terrainShape === "regular" && formData.area ? 'bg-[#F7A71C]/5 border-[#F7A71C]/30' : ''}`}
-                  />
-                  {formData.terrainShape === "irregular" && (
-                    <p className="text-xs text-muted-foreground mt-1 font-sans">
-                      Para terrenos irregulares, calcule ou meça a area e insira o valor aqui
-                    </p>
-                  )}
+              {/* Area Input - Only show for regular terrain since irregular has its own calculator */}
+              {formData.terrainShape === "regular" && (
+                <div className="mt-5">
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="area" className="text-sm font-medium font-sans">
+                      Area do Terreno (m2) 
+                      {formData.area && (
+                        <span className="ml-2 text-xs text-[#F7A71C] font-semibold">Calculado automaticamente</span>
+                      )}
+                    </Label>
+                    <Input 
+                      id="area" 
+                      required 
+                      type="number" 
+                      step="0.01"
+                      placeholder="ex: 500" 
+                      value={formData.area} 
+                      onChange={(e) => update("area", e.target.value)} 
+                      className={`font-sans text-lg font-semibold ${formData.area ? 'bg-[#F7A71C]/5 border-[#F7A71C]/30' : ''}`}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Terrain Map */}
               <div className="mt-6">
