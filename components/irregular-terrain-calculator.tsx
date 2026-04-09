@@ -6,19 +6,17 @@ import { Input } from "@/components/ui/input"
 import { PolygonCanvas } from "@/components/polygon-canvas"
 import { 
   calculateTriangleArea, 
-  calculateQuadrilateralArea, 
   calculateLShapeArea,
   calculateTrapezoidArea,
   calculatePolygonAreaFromCoordinates,
   formatNumber,
   type TriangleData,
-  type QuadrilateralData,
   type LShapeData,
   type TrapezoidData,
   type Point
 } from "@/lib/geometry-utils"
 
-type IrregularShape = "triangle" | "quadrilateral" | "lshape" | "trapezoid" | "polygon"
+type IrregularShape = "triangle" | "trapezoid" | "lshape" | "polygon"
 
 interface IrregularTerrainCalculatorProps {
   onCalculation: (area: string, perimeter: string) => void
@@ -26,7 +24,6 @@ interface IrregularTerrainCalculatorProps {
 
 const shapeOptions: { value: IrregularShape; label: string; icon: string; description: string }[] = [
   { value: "triangle", label: "Triangulo", icon: "△", description: "3 lados" },
-  { value: "quadrilateral", label: "Quadrilatero", icon: "◇", description: "4 lados + diagonal" },
   { value: "trapezoid", label: "Trapezio", icon: "⬡", description: "Bases + altura" },
   { value: "lshape", label: "Forma em L", icon: "⌐", description: "2 rectangulos" },
   { value: "polygon", label: "Poligono", icon: "⬢", description: "Desenhar no mapa" },
@@ -37,9 +34,6 @@ export function IrregularTerrainCalculator({ onCalculation }: IrregularTerrainCa
   
   // Triangle inputs
   const [triangleData, setTriangleData] = useState<TriangleData>({ sideA: 0, sideB: 0, sideC: 0 })
-  
-  // Quadrilateral inputs
-  const [quadData, setQuadData] = useState<QuadrilateralData>({ sideA: 0, sideB: 0, sideC: 0, sideD: 0, diagonal: 0 })
   
   // L-Shape inputs
   const [lshapeData, setLshapeData] = useState<LShapeData>({ width1: 0, length1: 0, width2: 0, length2: 0 })
@@ -76,21 +70,6 @@ export function IrregularTerrainCalculator({ onCalculation }: IrregularTerrainCa
         }
         break
         
-      case "quadrilateral":
-        if (quadData.sideA > 0 && quadData.sideB > 0 && quadData.sideC > 0 && quadData.sideD > 0 && quadData.diagonal > 0) {
-          calcResult = calculateQuadrilateralArea(quadData)
-          if (!calcResult) {
-            setError("Os valores nao formam um quadrilatero valido")
-          }
-        }
-        break
-        
-      case "lshape":
-        if (lshapeData.width1 > 0 && lshapeData.length1 > 0 && lshapeData.width2 > 0 && lshapeData.length2 > 0) {
-          calcResult = calculateLShapeArea(lshapeData)
-        }
-        break
-        
       case "trapezoid":
         if (trapezoidData.baseTop > 0 && trapezoidData.baseBottom > 0 && trapezoidData.height > 0) {
           calcResult = calculateTrapezoidArea(trapezoidData)
@@ -115,7 +94,7 @@ export function IrregularTerrainCalculator({ onCalculation }: IrregularTerrainCa
     if (calcResult) {
       onCalculation(formatNumber(calcResult.area), formatNumber(calcResult.perimeter))
     }
-  }, [selectedShape, triangleData, quadData, lshapeData, trapezoidData, polygonPoints, onCalculation])
+  }, [selectedShape, triangleData, lshapeData, trapezoidData, polygonPoints, onCalculation])
 
   const parseInput = (value: string): number => {
     const cleaned = value.replace(/[^\d.,]/g, '').replace(',', '.')
@@ -188,69 +167,6 @@ export function IrregularTerrainCalculator({ onCalculation }: IrregularTerrainCa
                 onChange={(e) => setTriangleData(prev => ({ ...prev, sideC: parseInput(e.target.value) }))}
                 className="font-sans"
               />
-            </div>
-          </div>
-        )}
-
-        {selectedShape === "quadrilateral" && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <Label className="text-sm font-sans">Lado A (m)</Label>
-                <Input 
-                  type="number"
-                  step="0.01" 
-                  placeholder="ex: 15" 
-                  value={quadData.sideA || ""} 
-                  onChange={(e) => setQuadData(prev => ({ ...prev, sideA: parseInput(e.target.value) }))}
-                  className="font-sans"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label className="text-sm font-sans">Lado B (m)</Label>
-                <Input 
-                  type="number"
-                  step="0.01" 
-                  placeholder="ex: 20" 
-                  value={quadData.sideB || ""} 
-                  onChange={(e) => setQuadData(prev => ({ ...prev, sideB: parseInput(e.target.value) }))}
-                  className="font-sans"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label className="text-sm font-sans">Lado C (m)</Label>
-                <Input 
-                  type="number"
-                  step="0.01" 
-                  placeholder="ex: 18" 
-                  value={quadData.sideC || ""} 
-                  onChange={(e) => setQuadData(prev => ({ ...prev, sideC: parseInput(e.target.value) }))}
-                  className="font-sans"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label className="text-sm font-sans">Lado D (m)</Label>
-                <Input 
-                  type="number"
-                  step="0.01" 
-                  placeholder="ex: 22" 
-                  value={quadData.sideD || ""} 
-                  onChange={(e) => setQuadData(prev => ({ ...prev, sideD: parseInput(e.target.value) }))}
-                  className="font-sans"
-                />
-              </div>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label className="text-sm font-sans">Diagonal (m) - Meca uma diagonal interna</Label>
-              <Input 
-                type="number"
-                step="0.01" 
-                placeholder="ex: 25" 
-                value={quadData.diagonal || ""} 
-                onChange={(e) => setQuadData(prev => ({ ...prev, diagonal: parseInput(e.target.value) }))}
-                className="font-sans"
-              />
-              <p className="text-xs text-muted-foreground">A diagonal e usada para dividir o terreno em 2 triangulos e calcular a area com precisao</p>
             </div>
           </div>
         )}
@@ -450,7 +366,6 @@ export function IrregularTerrainCalculator({ onCalculation }: IrregularTerrainCa
           <div className="mt-4 p-3 rounded-lg bg-background border border-border">
             <p className="text-xs text-muted-foreground font-sans">
               {selectedShape === "triangle" && "Formula de Heron: A = sqrt(s(s-a)(s-b)(s-c)), onde s = perimetro/2"}
-              {selectedShape === "quadrilateral" && "Divisao em 2 triangulos usando a diagonal + Formula de Heron"}
               {selectedShape === "trapezoid" && "Formula: A = (base1 + base2) x altura / 2"}
               {selectedShape === "lshape" && "Soma das areas dos 2 rectangulos: A1 + A2"}
               {selectedShape === "polygon" && "Formula Shoelace: A = (1/2)|sum(xi*yi+1 - xi+1*yi)| - Precisa para poligonos convexos e concavos"}
