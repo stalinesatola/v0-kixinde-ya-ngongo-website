@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { Upload, Sparkles, Loader2, FileText, Layers, Building2, Ruler, Box, Cpu, AreaChart, Lightbulb, ArrowLeft } from "lucide-react"
+import { Upload, Sparkles, Loader2, FileText, Layers, Building2, Ruler, Box, Cpu, AreaChart, Lightbulb, ArrowLeft, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { TerrainMap } from "@/components/terrain-map"
 
 const projectTypes = [
   { value: "Casa", icon: "🏠" },
@@ -79,6 +80,8 @@ export default function GeradorProjetosPage() {
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [streamContent, setStreamContent] = useState("")
   const [isStreaming, setIsStreaming] = useState(false)
+  const [showTerrainMap, setShowTerrainMap] = useState(false)
+  const [whatsappLink, setWhatsappLink] = useState<string>("")
   const abortRef = useRef<AbortController | null>(null)
   const resultRef = useRef<HTMLDivElement>(null)
 
@@ -133,6 +136,41 @@ export default function GeradorProjetosPage() {
 
   const update = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleMapCoordinates = (lat: number, lng: number) => {
+    update("coordinates", `${lat.toFixed(6)}, ${lng.toFixed(6)}`)
+  }
+
+  const handleDownloadPDF = async () => {
+    try {
+      const { generateProjectPDF } = await import("@/lib/pdf-generator")
+      const doc = await generateProjectPDF({
+        ...formData,
+        generatedContent: streamContent,
+      })
+      doc.save(`estudo-previo-${Date.now()}.pdf`)
+    } catch (error) {
+      console.error("[v0] Erro ao gerar PDF:", error)
+    }
+  }
+
+  const handleSendViaEmail = async () => {
+    try {
+      console.log("[v0] Enviando via email para:", formData.email)
+      // In a real scenario, this would call a backend endpoint to send email
+      alert("Email com o estudo prévio seria enviado para: " + formData.email)
+    } catch (error) {
+      console.error("[v0] Erro ao enviar email:", error)
+    }
+  }
+
+  const handleSendViaWhatsApp = () => {
+    const message = encodeURIComponent(
+      `Olá! Gerou-se um estudo prévio para o seu projeto de ${formData.projectType} em ${formData.location}. Descarregue o PDF aqui para análise detalhada. KIXINDE YA NGONGO - Arquitectura & Engenharia`
+    )
+    const link = `https://wa.me/244${formData.phone.replace(/\D/g, "").slice(-9)}?text=${message}`
+    window.open(link, "_blank")
   }
 
   // Parse markdown into sections
@@ -350,12 +388,21 @@ export default function GeradorProjetosPage() {
 
             {/* Bottom Actions */}
             {!isStreaming && streamContent && (
-              <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button onClick={handleReset} variant="outline" className="font-sans">
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Nova Simulacao
-                </Button>
-                <Button asChild className="bg-[#F7A71C] text-[#303030] hover:bg-[#d99116] font-sans font-semibold">
+              <div className="mt-12 flex flex-col gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <Button onClick={handleReset} variant="outline" className="font-sans">
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Nova Simulacao
+                  </Button>
+                  <Button onClick={handleDownloadPDF} className="bg-blue-600 text-white hover:bg-blue-700 font-sans font-semibold">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download PDF
+                  </Button>
+                  <Button onClick={handleSendViaWhatsApp} className="bg-green-600 text-white hover:bg-green-700 font-sans font-semibold">
+                    Enviar via WhatsApp
+                  </Button>
+                </div>
+                <Button asChild className="w-full bg-[#F7A71C] text-[#303030] hover:bg-[#d99116] font-sans font-semibold">
                   <a href="https://wa.me/244926899866?text=Olá, gerei um projecto conceptual e gostaria de avançar." target="_blank" rel="noopener noreferrer">
                     Falar com Equipa Tecnica
                   </a>
@@ -434,6 +481,26 @@ export default function GeradorProjetosPage() {
                   <Label htmlFor="coordinates" className="text-sm font-medium font-sans">Coordenadas (Opcional)</Label>
                   <Input id="coordinates" placeholder="Latitude, Longitude" value={formData.coordinates} onChange={(e) => update("coordinates", e.target.value)} className="font-sans" />
                 </div>
+              </div>
+
+              {/* Terrain Map */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <Label className="text-sm font-medium font-sans">Seleccionar Terreno no Mapa (Opcional)</Label>
+                  <button
+                    type="button"
+                    onClick={() => setShowTerrainMap(!showTerrainMap)}
+                    className="text-xs text-[#F7A71C] hover:text-[#d99116] font-medium font-sans transition-colors"
+                  >
+                    {showTerrainMap ? "Fechar Mapa" : "Abrir Mapa"}
+                  </button>
+                </div>
+                {showTerrainMap && (
+                  <TerrainMap onCoordinatesChange={handleMapCoordinates} initialCoords={formData.coordinates ? (() => {
+                    const [lat, lng] = formData.coordinates.split(",").map(c => parseFloat(c.trim()))
+                    return { lat, lng }
+                  })() : undefined} />
+                )}
               </div>
             </div>
 
