@@ -96,11 +96,17 @@ export default function GeradorProjetosPage() {
   const [isStreaming, setIsStreaming] = useState(false)
   const [showTerrainMap, setShowTerrainMap] = useState(false)
   const [whatsappLink, setWhatsappLink] = useState<string>("")
+  const [projectName, setProjectName] = useState<string>("")
   const abortRef = useRef<AbortController | null>(null)
   const resultRef = useRef<HTMLDivElement>(null)
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Generate project name
+    const generatedProjectName = generateProjectName(formData)
+    setProjectName(generatedProjectName)
+    
     setStep("generating")
     setStreamContent("")
     setIsStreaming(true)
@@ -150,6 +156,29 @@ export default function GeradorProjetosPage() {
 
   const update = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  // Generate project name: PROJEC. [TYPE] [SUBTYPE] [CLIENT NAME] - [LOCATION] - [DATE]
+  const generateProjectName = (data: FormData): string => {
+    const date = new Date()
+    const day = String(date.getDate()).padStart(2, '0')
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const year = date.getFullYear()
+    const dateStr = `${day}${month}${year}`
+    
+    // Clean and uppercase client name
+    const clientName = data.name.toUpperCase().trim()
+    
+    // Build project type string
+    let typeStr = data.projectType.toUpperCase()
+    if (data.projectSubType) {
+      typeStr += ` ${data.projectSubType.toUpperCase()}`
+    }
+    
+    // Clean location
+    const location = data.location.toUpperCase().trim()
+    
+    return `PROJEC. ${typeStr} ${clientName} - ${location} - ${dateStr}`
   }
 
   // Calculate area and perimeter from dimensions
@@ -246,7 +275,11 @@ export default function GeradorProjetosPage() {
         ...formData,
         generatedContent: streamContent,
       })
-      doc.save(`estudo-previo-${Date.now()}.pdf`)
+      // Use project name for PDF filename, sanitize for file system
+      const filename = projectName 
+        ? projectName.replace(/[^a-zA-Z0-9\s-]/g, '').replace(/\s+/g, '-') + '.pdf'
+        : `estudo-previo-${Date.now()}.pdf`
+      doc.save(filename)
     } catch (error) {
       console.error("[v0] Erro ao gerar PDF:", error)
     }
@@ -414,7 +447,7 @@ export default function GeradorProjetosPage() {
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#F7A71C] font-sans">Projecto Conceptual</p>
                 <h1 className="text-2xl font-bold text-[#ffffff] md:text-3xl font-serif text-balance">
-                  {formData.projectType}{formData.projectSubType && ` - ${formData.projectSubType}`} {formData.style && `(${formData.style})`}
+                  {projectName || `${formData.projectType}${formData.projectSubType ? ` - ${formData.projectSubType}` : ""} ${formData.style ? `(${formData.style})` : ""}`}
                 </h1>
                 <p className="mt-2 text-sm text-[#c0c0c0] font-sans">
                   {formData.location} | {formData.area} m² | {formData.floors} andar(es)
