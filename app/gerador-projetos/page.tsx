@@ -161,16 +161,15 @@ export default function GeradorProjetosPage() {
         const length = parseFloat(match[2])
         const area = width * length
         const perimeter = 2 * (width + length)
-        return { area: area.toFixed(2), perimeter: perimeter.toFixed(2) }
+        return { area: area.toFixed(2), perimeter: perimeter.toFixed(2), width, length }
       }
     } else if (shape === "irregular") {
       // For irregular, parse comma-separated sides like "10, 15, 12, 8, 20"
       const sides = dimensions.split(/[,;]/).map(s => parseFloat(s.trim())).filter(n => !isNaN(n))
       if (sides.length >= 3) {
         const perimeter = sides.reduce((sum, side) => sum + side, 0)
-        // Approximate area using shoelace-like estimation (not accurate but gives rough estimate)
         // For better accuracy, user should input area directly
-        return { area: "", perimeter: perimeter.toFixed(2) }
+        return { area: "", perimeter: perimeter.toFixed(2), sides }
       }
     }
     return { area: "", perimeter: "" }
@@ -602,20 +601,40 @@ export default function GeradorProjetosPage() {
               {/* Calculation Results Panel */}
               {(formData.area || formData.perimeter) && (
                 <div className="mt-6 rounded-lg bg-[#F7A71C]/5 border border-[#F7A71C]/20 p-6">
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-2 mb-5">
                     <Ruler className="h-5 w-5 text-[#F7A71C]" />
                     <h3 className="font-semibold text-foreground font-sans">Calculos do Terreno</h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {formData.terrainShape === "regular" && formData.dimensions && (
+                      <div className="flex flex-col gap-2 p-4 rounded-lg bg-background border border-[#F7A71C]/30">
+                        <Label className="text-xs font-medium text-muted-foreground font-sans">Formula de Calculo</Label>
+                        <div className="flex flex-col gap-1">
+                          <p className="text-sm font-mono font-semibold text-foreground">
+                            {(() => {
+                              const match = formData.dimensions.match(/(\d+(?:\.\d+)?)\s*[mx×]\s*(\d+(?:\.\d+)?)/i)
+                              if (match) {
+                                const w = match[1]
+                                const l = match[2]
+                                return `${w}m × ${l}m`
+                              }
+                              return formData.dimensions
+                            })()}
+                          </p>
+                          <p className="text-xs text-muted-foreground font-sans">(Largura × Comprimento)</p>
+                        </div>
+                      </div>
+                    )}
+
                     {formData.area && (
-                      <div className="flex flex-col gap-1.5 p-4 rounded-lg bg-background border border-border">
+                      <div className="flex flex-col gap-1.5 p-4 rounded-lg bg-background border-2 border-[#F7A71C]/50">
                         <Label className="text-xs font-medium text-muted-foreground font-sans">Area Total</Label>
                         <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-bold text-[#F7A71C] font-serif">{formData.area}</span>
-                          <span className="text-sm font-medium text-muted-foreground font-sans">m²</span>
+                          <span className="text-3xl font-bold text-[#F7A71C] font-serif">{formData.area}</span>
+                          <span className="text-sm font-semibold text-[#F7A71C] font-sans">m²</span>
                         </div>
                         {formData.terrainShape === "regular" && formData.dimensions && (
-                          <p className="text-xs text-muted-foreground mt-1 font-sans">Calculado automaticamente</p>
+                          <p className="text-xs text-[#F7A71C] mt-2 font-sans font-medium">✓ Calculado automaticamente</p>
                         )}
                       </div>
                     )}
@@ -624,38 +643,46 @@ export default function GeradorProjetosPage() {
                       <div className="flex flex-col gap-1.5 p-4 rounded-lg bg-background border border-border">
                         <Label className="text-xs font-medium text-muted-foreground font-sans">Perimetro</Label>
                         <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-bold text-[#F7A71C] font-serif">{formData.perimeter}</span>
+                          <span className="text-2xl font-bold text-foreground font-serif">{formData.perimeter}</span>
                           <span className="text-sm font-medium text-muted-foreground font-sans">m</span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1 font-sans">Calculado automaticamente</p>
                       </div>
                     )}
 
-                    {formData.dimensions && formData.terrainShape === "regular" && (
-                      <div className="flex flex-col gap-1.5 p-4 rounded-lg bg-background border border-border">
-                        <Label className="text-xs font-medium text-muted-foreground font-sans">Dimensoes</Label>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-lg font-bold text-foreground font-serif">{formData.dimensions}</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1 font-sans">Terreno regular</p>
-                      </div>
-                    )}
-
                     {formData.irregularSides && formData.terrainShape === "irregular" && (
                       <div className="flex flex-col gap-1.5 p-4 rounded-lg bg-background border border-border">
-                        <Label className="text-xs font-medium text-muted-foreground font-sans">Lados</Label>
+                        <Label className="text-xs font-medium text-muted-foreground font-sans">Numero de Lados</Label>
                         <div className="flex items-baseline gap-2">
-                          <span className="text-sm font-medium text-foreground font-sans">{formData.irregularSides.split(/[,;]/).length} lados</span>
+                          <span className="text-2xl font-bold text-foreground font-serif">{formData.irregularSides.split(/[,;]/).filter(s => s.trim()).length}</span>
+                          <span className="text-sm font-medium text-muted-foreground font-sans">lados</span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1 font-sans">Terreno irregular</p>
                       </div>
                     )}
                   </div>
 
+                  {formData.terrainShape === "regular" && formData.area && (
+                    <div className="mt-4 p-3 rounded-lg bg-[#F7A71C]/5 border border-[#F7A71C]/20">
+                      <p className="text-sm text-foreground font-sans">
+                        <span className="font-semibold">Calculo:</span> Largura × Comprimento = Area Total
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1 font-sans">
+                        {(() => {
+                          const match = formData.dimensions.match(/(\d+(?:\.\d+)?)\s*[mx×]\s*(\d+(?:\.\d+)?)/i)
+                          if (match) {
+                            return `${match[1]} × ${match[2]} = ${formData.area} m²`
+                          }
+                          return ""
+                        })()}
+                      </p>
+                    </div>
+                  )}
+
                   {formData.terrainShape === "irregular" && !formData.area && (
                     <div className="mt-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
                       <p className="text-sm text-blue-700 dark:text-blue-300 font-sans">
-                        <strong>Nota:</strong> Para terrenos irregulares, insira a area manualmente abaixo. O perimetro foi calculado automaticamente.
+                        <strong>Nota:</strong> Para terrenos irregulares, insira a area manualmente abaixo. O perimetro ({formData.perimeter}m) foi calculado somando todos os lados.
                       </p>
                     </div>
                   )}
