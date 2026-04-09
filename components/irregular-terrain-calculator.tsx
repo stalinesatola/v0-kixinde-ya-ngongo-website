@@ -3,19 +3,22 @@
 import { useState, useEffect } from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { PolygonCanvas } from "@/components/polygon-canvas"
 import { 
   calculateTriangleArea, 
   calculateQuadrilateralArea, 
   calculateLShapeArea,
   calculateTrapezoidArea,
+  calculatePolygonAreaFromCoordinates,
   formatNumber,
   type TriangleData,
   type QuadrilateralData,
   type LShapeData,
-  type TrapezoidData
+  type TrapezoidData,
+  type Point
 } from "@/lib/geometry-utils"
 
-type IrregularShape = "triangle" | "quadrilateral" | "lshape" | "trapezoid"
+type IrregularShape = "triangle" | "quadrilateral" | "lshape" | "trapezoid" | "polygon"
 
 interface IrregularTerrainCalculatorProps {
   onCalculation: (area: string, perimeter: string) => void
@@ -26,6 +29,7 @@ const shapeOptions: { value: IrregularShape; label: string; icon: string; descri
   { value: "quadrilateral", label: "Quadrilatero", icon: "◇", description: "4 lados + diagonal" },
   { value: "trapezoid", label: "Trapezio", icon: "⬡", description: "Bases + altura" },
   { value: "lshape", label: "Forma em L", icon: "⌐", description: "2 rectangulos" },
+  { value: "polygon", label: "Poligono", icon: "⬢", description: "Desenhar no mapa" },
 ]
 
 export function IrregularTerrainCalculator({ onCalculation }: IrregularTerrainCalculatorProps) {
@@ -42,6 +46,16 @@ export function IrregularTerrainCalculator({ onCalculation }: IrregularTerrainCa
   
   // Trapezoid inputs
   const [trapezoidData, setTrapezoidData] = useState<TrapezoidData>({ baseTop: 0, baseBottom: 0, height: 0, sideLeft: 0, sideRight: 0 })
+  
+  // Polygon inputs (coordinate-based)
+  const [polygonPoints, setPolygonPoints] = useState<Point[]>([])
+  const [polygonResult, setPolygonResult] = useState<{
+    area: number
+    perimeter: number
+    isValid: boolean
+    isConvex: boolean
+    hasSelfIntersection: boolean
+  } | null>(null)
   
   // Calculated results
   const [result, setResult] = useState<{ area: number; perimeter: number } | null>(null)
@@ -82,6 +96,18 @@ export function IrregularTerrainCalculator({ onCalculation }: IrregularTerrainCa
           calcResult = calculateTrapezoidArea(trapezoidData)
         }
         break
+        
+      case "polygon":
+        if (polygonPoints.length >= 3) {
+          const polyResult = calculatePolygonAreaFromCoordinates(polygonPoints)
+          setPolygonResult(polyResult)
+          if (polyResult && polyResult.isValid) {
+            calcResult = { area: polyResult.area, perimeter: polyResult.perimeter }
+          } else if (polyResult?.hasSelfIntersection) {
+            setError("O poligono tem lados que se cruzam. Ajuste os pontos.")
+          }
+        }
+        break
     }
     
     setResult(calcResult)
@@ -89,7 +115,7 @@ export function IrregularTerrainCalculator({ onCalculation }: IrregularTerrainCa
     if (calcResult) {
       onCalculation(formatNumber(calcResult.area), formatNumber(calcResult.perimeter))
     }
-  }, [selectedShape, triangleData, quadData, lshapeData, trapezoidData, onCalculation])
+  }, [selectedShape, triangleData, quadData, lshapeData, trapezoidData, polygonPoints, onCalculation])
 
   const parseInput = (value: string): number => {
     const cleaned = value.replace(/[^\d.,]/g, '').replace(',', '.')
@@ -355,6 +381,37 @@ export function IrregularTerrainCalculator({ onCalculation }: IrregularTerrainCa
             </div>
           </div>
         )}
+
+        {selectedShape === "polygon" && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground font-sans mb-2">
+              Desenhe o seu terreno clicando no canvas abaixo. Cada clique adiciona um vertice. 
+              As coordenadas estao em metros.
+            </p>
+            <PolygonCanvas 
+              points={polygonPoints} 
+              onPointsChange={setPolygonPoints}
+              width={450}
+              height={320}
+            />
+            {polygonResult && (
+              <div className="space-y-2">
+                {polygonResult.hasSelfIntersection && (
+                  <div className="p-2 rounded bg-red-500/10 border border-red-500/20">
+                    <p className="text-xs text-red-600 font-sans">
+                      Aviso: O poligono tem lados que se cruzam. Ajuste os pontos para um calculo correcto.
+                    </p>
+                  </div>
+                )}
+                <div className="flex gap-4 text-xs text-muted-foreground font-sans">
+                  <span>Vertices: {polygonPoints.length}</span>
+                  <span>Tipo: {polygonResult.isConvex ? "Convexo" : "Concavo"}</span>
+                  <span>Estado: {polygonResult.isValid ? "Valido" : "Invalido"}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Error Message */}
@@ -396,6 +453,7 @@ export function IrregularTerrainCalculator({ onCalculation }: IrregularTerrainCa
               {selectedShape === "quadrilateral" && "Divisao em 2 triangulos usando a diagonal + Formula de Heron"}
               {selectedShape === "trapezoid" && "Formula: A = (base1 + base2) x altura / 2"}
               {selectedShape === "lshape" && "Soma das areas dos 2 rectangulos: A1 + A2"}
+              {selectedShape === "polygon" && "Formula Shoelace: A = (1/2)|sum(xi*yi+1 - xi+1*yi)| - Precisa para poligonos convexos e concavos"}
             </p>
           </div>
         </div>
