@@ -43,9 +43,9 @@ export function Footer() {
               <Image
                 src="/images/logo-horizontal.png"
                 alt="KIXINDE YA NGONGO"
-                width={200}
-                height={50}
-                className="h-10 w-auto brightness-0 invert"
+                width={280}
+                height={70}
+                className="h-14 w-auto brightness-0 invert"
               />
             </div>
             <p className="text-sm leading-relaxed text-[#b0b0b0] max-w-sm mb-6">
