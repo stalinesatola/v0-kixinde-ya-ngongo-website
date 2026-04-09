@@ -594,38 +594,98 @@ export default function GeradorProjetosPage() {
                 )}
 
                 <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="coordinates" className="text-sm font-medium font-sans">Coordenadas (Opcional)</Label>
+                  <Input id="coordinates" placeholder="Latitude, Longitude" value={formData.coordinates} onChange={(e) => update("coordinates", e.target.value)} className="font-sans" />
+                </div>
+              </div>
+
+              {/* Calculation Results Panel */}
+              {(formData.area || formData.perimeter) && (
+                <div className="mt-6 rounded-lg bg-[#F7A71C]/5 border border-[#F7A71C]/20 p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Ruler className="h-5 w-5 text-[#F7A71C]" />
+                    <h3 className="font-semibold text-foreground font-sans">Calculos do Terreno</h3>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {formData.area && (
+                      <div className="flex flex-col gap-1.5 p-4 rounded-lg bg-background border border-border">
+                        <Label className="text-xs font-medium text-muted-foreground font-sans">Area Total</Label>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-bold text-[#F7A71C] font-serif">{formData.area}</span>
+                          <span className="text-sm font-medium text-muted-foreground font-sans">m²</span>
+                        </div>
+                        {formData.terrainShape === "regular" && formData.dimensions && (
+                          <p className="text-xs text-muted-foreground mt-1 font-sans">Calculado automaticamente</p>
+                        )}
+                      </div>
+                    )}
+                    
+                    {formData.perimeter && (
+                      <div className="flex flex-col gap-1.5 p-4 rounded-lg bg-background border border-border">
+                        <Label className="text-xs font-medium text-muted-foreground font-sans">Perimetro</Label>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-bold text-[#F7A71C] font-serif">{formData.perimeter}</span>
+                          <span className="text-sm font-medium text-muted-foreground font-sans">m</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 font-sans">Calculado automaticamente</p>
+                      </div>
+                    )}
+
+                    {formData.dimensions && formData.terrainShape === "regular" && (
+                      <div className="flex flex-col gap-1.5 p-4 rounded-lg bg-background border border-border">
+                        <Label className="text-xs font-medium text-muted-foreground font-sans">Dimensoes</Label>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-lg font-bold text-foreground font-serif">{formData.dimensions}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 font-sans">Terreno regular</p>
+                      </div>
+                    )}
+
+                    {formData.irregularSides && formData.terrainShape === "irregular" && (
+                      <div className="flex flex-col gap-1.5 p-4 rounded-lg bg-background border border-border">
+                        <Label className="text-xs font-medium text-muted-foreground font-sans">Lados</Label>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-sm font-medium text-foreground font-sans">{formData.irregularSides.split(/[,;]/).length} lados</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 font-sans">Terreno irregular</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {formData.terrainShape === "irregular" && !formData.area && (
+                    <div className="mt-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                      <p className="text-sm text-blue-700 dark:text-blue-300 font-sans">
+                        <strong>Nota:</strong> Para terrenos irregulares, insira a area manualmente abaixo. O perimetro foi calculado automaticamente.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Area Input - Moved below calculation panel for better flow */}
+              <div className="mt-5">
+                <div className="flex flex-col gap-1.5">
                   <Label htmlFor="area" className="text-sm font-medium font-sans">
-                    Area do Terreno (m2) {formData.terrainShape === "regular" && formData.area && <span className="text-[#F7A71C]">- Calculado</span>}
+                    Area do Terreno (m²) 
+                    {formData.terrainShape === "regular" && formData.area && (
+                      <span className="ml-2 text-xs text-[#F7A71C] font-semibold">✓ Calculado automaticamente</span>
+                    )}
                   </Label>
                   <Input 
                     id="area" 
                     required 
                     type="number" 
+                    step="0.01"
                     placeholder={formData.terrainShape === "irregular" ? "Insira a area manualmente" : "ex: 500"} 
                     value={formData.area} 
                     onChange={(e) => update("area", e.target.value)} 
-                    className="font-sans" 
+                    className={`font-sans text-lg font-semibold ${formData.terrainShape === "regular" && formData.area ? 'bg-[#F7A71C]/5 border-[#F7A71C]/30' : ''}`}
                   />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="perimeter" className="text-sm font-medium font-sans">
-                    Perimetro (m) {formData.perimeter && <span className="text-[#F7A71C]">- Calculado</span>}
-                  </Label>
-                  <Input 
-                    id="perimeter" 
-                    type="number" 
-                    placeholder="Calculado automaticamente" 
-                    value={formData.perimeter} 
-                    onChange={(e) => update("perimeter", e.target.value)} 
-                    className="font-sans bg-secondary/50" 
-                    readOnly={!!formData.dimensions || !!formData.irregularSides}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="coordinates" className="text-sm font-medium font-sans">Coordenadas (Opcional)</Label>
-                  <Input id="coordinates" placeholder="Latitude, Longitude" value={formData.coordinates} onChange={(e) => update("coordinates", e.target.value)} className="font-sans" />
+                  {formData.terrainShape === "irregular" && (
+                    <p className="text-xs text-muted-foreground mt-1 font-sans">
+                      Para terrenos irregulares, calcule ou meça a area e insira o valor aqui
+                    </p>
+                  )}
                 </div>
               </div>
 
