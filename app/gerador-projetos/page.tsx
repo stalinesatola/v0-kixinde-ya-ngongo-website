@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useRef } from "react"
-import { Upload, Sparkles, Loader2, FileText, Layers, Building2, Ruler, Box, Cpu, AreaChart, Lightbulb, ArrowLeft, Download } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { Upload, Sparkles, Loader2, FileText, Layers, Building2, Ruler, Box, Cpu, AreaChart, Lightbulb, ArrowLeft, Download, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,10 +9,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { TerrainMap } from "@/components/terrain-map"
 
 const projectTypes = [
-  { value: "Casa", icon: "🏠" },
-  { value: "Edifício", icon: "🏢" },
-  { value: "Espaço Comercial", icon: "🏪" },
-  { value: "Infraestrutura", icon: "🏗️" },
+  { value: "Casa", icon: "🏠", subTypes: [] },
+  { value: "Edifício", icon: "🏢", subTypes: ["Residencial", "Escritórios", "Misto", "Apartamentos T1-T2", "Apartamentos T3-T4", "Condomínio Fechado"] },
+  { value: "Espaço Comercial", icon: "🏪", subTypes: ["Loja", "Supermercado", "Centro Comercial", "Restaurante", "Hotel", "Armazém"] },
+  { value: "Infraestrutura", icon: "🏗️", subTypes: ["Escola", "Hospital", "Igreja", "Estação de Serviço", "Pavilhão Desportivo", "Parque de Estacionamento"] },
+]
+
+const terrainShapes = [
+  { value: "regular", label: "Regular (Rectangular)" },
+  { value: "irregular", label: "Irregular" },
 ]
 
 const architecturalStyles = [
@@ -47,9 +52,13 @@ interface FormData {
   email: string
   location: string
   area: string
+  perimeter: string
   dimensions: string
+  terrainShape: string
+  irregularSides: string
   coordinates: string
   projectType: string
+  projectSubType: string
   floors: string
   bedrooms: string
   bathrooms: string
@@ -64,9 +73,13 @@ const initialFormData: FormData = {
   email: "",
   location: "",
   area: "",
+  perimeter: "",
   dimensions: "",
+  terrainShape: "regular",
+  irregularSides: "",
   coordinates: "",
   projectType: "",
+  projectSubType: "",
   floors: "1",
   bedrooms: "3",
   bathrooms: "2",
@@ -136,6 +149,62 @@ export default function GeradorProjetosPage() {
 
   const update = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  // Calculate area and perimeter from dimensions
+  const calculateFromDimensions = (dimensions: string, shape: string) => {
+    if (shape === "regular") {
+      // Parse dimensions like "20m x 25m" or "20x25" or "20 x 25"
+      const match = dimensions.match(/(\d+(?:\.\d+)?)\s*[mx×]\s*(\d+(?:\.\d+)?)/i)
+      if (match) {
+        const width = parseFloat(match[1])
+        const length = parseFloat(match[2])
+        const area = width * length
+        const perimeter = 2 * (width + length)
+        return { area: area.toFixed(2), perimeter: perimeter.toFixed(2) }
+      }
+    } else if (shape === "irregular") {
+      // For irregular, parse comma-separated sides like "10, 15, 12, 8, 20"
+      const sides = dimensions.split(/[,;]/).map(s => parseFloat(s.trim())).filter(n => !isNaN(n))
+      if (sides.length >= 3) {
+        const perimeter = sides.reduce((sum, side) => sum + side, 0)
+        // Approximate area using shoelace-like estimation (not accurate but gives rough estimate)
+        // For better accuracy, user should input area directly
+        return { area: "", perimeter: perimeter.toFixed(2) }
+      }
+    }
+    return { area: "", perimeter: "" }
+  }
+
+  const handleDimensionsChange = (value: string) => {
+    update("dimensions", value)
+    const calculated = calculateFromDimensions(value, formData.terrainShape)
+    if (calculated.area && !formData.area) {
+      update("area", calculated.area)
+    }
+    if (calculated.perimeter) {
+      update("perimeter", calculated.perimeter)
+    }
+  }
+
+  const handleTerrainShapeChange = (shape: string) => {
+    update("terrainShape", shape)
+    update("dimensions", "")
+    update("irregularSides", "")
+    update("area", "")
+    update("perimeter", "")
+  }
+
+  const handleProjectTypeChange = (type: string) => {
+    update("projectType", type)
+    update("projectSubType", "")
+  }
+
+  const openWhatsAppChat = () => {
+    const message = encodeURIComponent(
+      `Olá! Estou interessado em gerar um projecto de ${formData.projectType || "arquitectura"}${formData.projectSubType ? ` (${formData.projectSubType})` : ""} em ${formData.location || "Angola"}. Podem ajudar-me?`
+    )
+    window.open(`https://wa.me/244926899866?text=${message}`, "_blank")
   }
 
   const handleMapCoordinates = (lat: number, lng: number) => {
@@ -317,7 +386,7 @@ export default function GeradorProjetosPage() {
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#F7A71C] font-sans">Projecto Conceptual</p>
                 <h1 className="text-2xl font-bold text-[#ffffff] md:text-3xl font-serif text-balance">
-                  {formData.projectType} {formData.style && `- ${formData.style}`}
+                  {formData.projectType}{formData.projectSubType && ` - ${formData.projectSubType}`} {formData.style && `(${formData.style})`}
                 </h1>
                 <p className="mt-2 text-sm text-[#c0c0c0] font-sans">
                   {formData.location} | {formData.area} m² | {formData.floors} andar(es)
@@ -464,19 +533,96 @@ export default function GeradorProjetosPage() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F7A71C] text-sm font-bold text-[#303030] font-serif">2</div>
                 <h2 className="text-lg font-bold text-foreground font-serif">Dados do Terreno</h2>
               </div>
+
+              {/* Terrain Shape Selection */}
+              <div className="mb-6">
+                <Label className="mb-3 block text-sm font-medium font-sans">Forma do Terreno</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {terrainShapes.map((shape) => (
+                    <button
+                      key={shape.value}
+                      type="button"
+                      onClick={() => handleTerrainShapeChange(shape.value)}
+                      className={`rounded-lg border px-4 py-3 text-sm font-medium transition-all font-sans ${
+                        formData.terrainShape === shape.value
+                          ? "border-[#F7A71C] bg-[#F7A71C]/10 text-foreground"
+                          : "border-border bg-background text-muted-foreground hover:border-[#F7A71C]/40"
+                      }`}
+                    >
+                      {shape.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="location" className="text-sm font-medium font-sans">Localizacao</Label>
                   <Input id="location" required placeholder="Bairro, Municipio, Provincia" value={formData.location} onChange={(e) => update("location", e.target.value)} className="font-sans" />
                 </div>
+                
+                {formData.terrainShape === "regular" ? (
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="dimensions" className="text-sm font-medium font-sans">Dimensoes (Largura x Comprimento)</Label>
+                    <Input 
+                      id="dimensions" 
+                      placeholder="ex: 20m x 25m" 
+                      value={formData.dimensions} 
+                      onChange={(e) => handleDimensionsChange(e.target.value)} 
+                      className="font-sans" 
+                    />
+                    <p className="text-xs text-muted-foreground">Insira no formato: 20m x 25m ou 20x25</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="irregularSides" className="text-sm font-medium font-sans">Lados do Terreno (metros)</Label>
+                    <Input 
+                      id="irregularSides" 
+                      placeholder="ex: 10, 15, 12, 8, 20" 
+                      value={formData.irregularSides} 
+                      onChange={(e) => {
+                        update("irregularSides", e.target.value)
+                        const calculated = calculateFromDimensions(e.target.value, "irregular")
+                        if (calculated.perimeter) {
+                          update("perimeter", calculated.perimeter)
+                        }
+                      }} 
+                      className="font-sans" 
+                    />
+                    <p className="text-xs text-muted-foreground">Separe cada lado por virgula</p>
+                  </div>
+                )}
+
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="area" className="text-sm font-medium font-sans">Area do Terreno (m2)</Label>
-                  <Input id="area" required type="number" placeholder="ex: 500" value={formData.area} onChange={(e) => update("area", e.target.value)} className="font-sans" />
+                  <Label htmlFor="area" className="text-sm font-medium font-sans">
+                    Area do Terreno (m2) {formData.terrainShape === "regular" && formData.area && <span className="text-[#F7A71C]">- Calculado</span>}
+                  </Label>
+                  <Input 
+                    id="area" 
+                    required 
+                    type="number" 
+                    placeholder={formData.terrainShape === "irregular" ? "Insira a area manualmente" : "ex: 500"} 
+                    value={formData.area} 
+                    onChange={(e) => update("area", e.target.value)} 
+                    className="font-sans" 
+                  />
                 </div>
+
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="dimensions" className="text-sm font-medium font-sans">Dimensoes do Terreno</Label>
-                  <Input id="dimensions" placeholder="ex: 20m x 25m" value={formData.dimensions} onChange={(e) => update("dimensions", e.target.value)} className="font-sans" />
+                  <Label htmlFor="perimeter" className="text-sm font-medium font-sans">
+                    Perimetro (m) {formData.perimeter && <span className="text-[#F7A71C]">- Calculado</span>}
+                  </Label>
+                  <Input 
+                    id="perimeter" 
+                    type="number" 
+                    placeholder="Calculado automaticamente" 
+                    value={formData.perimeter} 
+                    onChange={(e) => update("perimeter", e.target.value)} 
+                    className="font-sans bg-secondary/50" 
+                    readOnly={!!formData.dimensions || !!formData.irregularSides}
+                  />
                 </div>
+
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="coordinates" className="text-sm font-medium font-sans">Coordenadas (Opcional)</Label>
                   <Input id="coordinates" placeholder="Latitude, Longitude" value={formData.coordinates} onChange={(e) => update("coordinates", e.target.value)} className="font-sans" />
@@ -519,7 +665,7 @@ export default function GeradorProjetosPage() {
                     <button
                       key={type.value}
                       type="button"
-                      onClick={() => update("projectType", type.value)}
+                      onClick={() => handleProjectTypeChange(type.value)}
                       className={`flex flex-col items-center gap-2 rounded-lg border px-4 py-4 text-sm font-medium transition-all font-sans ${
                         formData.projectType === type.value
                           ? "border-[#F7A71C] bg-[#F7A71C]/10 text-foreground"
@@ -532,6 +678,31 @@ export default function GeradorProjetosPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Project Sub-Type (if applicable) */}
+              {formData.projectType && projectTypes.find(t => t.value === formData.projectType)?.subTypes.length! > 0 && (
+                <div className="mb-6">
+                  <Label className="mb-3 block text-sm font-medium font-sans">
+                    Tipo de {formData.projectType}
+                  </Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {projectTypes.find(t => t.value === formData.projectType)?.subTypes.map((subType) => (
+                      <button
+                        key={subType}
+                        type="button"
+                        onClick={() => update("projectSubType", subType)}
+                        className={`rounded-lg border px-4 py-3 text-sm font-medium transition-all font-sans ${
+                          formData.projectSubType === subType
+                            ? "border-[#F7A71C] bg-[#F7A71C]/10 text-foreground"
+                            : "border-border bg-background text-muted-foreground hover:border-[#F7A71C]/40"
+                        }`}
+                      >
+                        {subType}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Numeric fields */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-6">
@@ -623,15 +794,26 @@ export default function GeradorProjetosPage() {
             </div>
 
             {/* Submit */}
-            <Button
-              type="submit"
-              size="lg"
-              disabled={!formData.name || !formData.email || !formData.location || !formData.area || !formData.projectType || !formData.style}
-              className="w-full bg-[#F7A71C] text-[#303030] hover:bg-[#d99116] font-sans font-semibold text-base h-14 disabled:opacity-40"
-            >
-              <Sparkles className="mr-2 h-5 w-5" />
-              Gerar Projecto com Inteligencia Artificial
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button
+                type="submit"
+                size="lg"
+                disabled={!formData.name || !formData.email || !formData.location || !formData.area || !formData.projectType || !formData.style}
+                className="flex-1 bg-[#F7A71C] text-[#303030] hover:bg-[#d99116] font-sans font-semibold text-base h-14 disabled:opacity-40"
+              >
+                <Sparkles className="mr-2 h-5 w-5" />
+                Simular Projecto
+              </Button>
+              <Button
+                type="button"
+                size="lg"
+                onClick={openWhatsAppChat}
+                className="sm:w-auto bg-green-600 text-white hover:bg-green-700 font-sans font-semibold text-base h-14"
+              >
+                <MessageCircle className="mr-2 h-5 w-5" />
+                Falar no WhatsApp
+              </Button>
+            </div>
 
             <p className="text-center text-xs text-muted-foreground font-sans">
               O projecto conceptual gerado por IA serve como base para desenvolvimento profissional posterior em Revit / ArchiCAD.
