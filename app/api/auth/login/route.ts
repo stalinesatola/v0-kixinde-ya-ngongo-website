@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       )
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -30,6 +30,16 @@ export async function POST(request: Request) {
         role: user.role,
       },
     })
+
+    // Set session cookie
+    response.cookies.set("kixinde_session", user.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    })
+
+    return response
   } catch (error) {
     console.error("[v0] Login error:", error)
     return NextResponse.json(

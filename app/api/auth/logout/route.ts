@@ -1,10 +1,18 @@
-import { destroySession } from "@/lib/auth"
 import { NextResponse } from "next/server"
 
 export async function POST() {
   try {
-    await destroySession()
-    return NextResponse.json({ success: true })
+    const response = NextResponse.json({ success: true })
+    
+    // Clear session cookie
+    response.cookies.set("kixinde_session", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 0,
+    })
+
+    return response
   } catch (error) {
     console.error("[v0] Logout error:", error)
     return NextResponse.json(

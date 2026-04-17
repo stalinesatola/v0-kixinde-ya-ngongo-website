@@ -33,7 +33,9 @@ export default function LoginPage() {
         return
       }
 
+      // Navigate after successful login
       router.push("/admin/dashboard")
+      router.refresh()
     } catch (err) {
       setError("Erro ao conectar com o servidor")
       setLoading(false)
