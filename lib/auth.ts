@@ -20,11 +20,17 @@ export async function getSessionUser() {
 
 export async function loginUser(email: string, password: string) {
   const user = await db.getUserByEmail(email)
-  if (!user) return null
-
-  if (!db.comparePassword(password, user.password)) {
+  if (!user) {
+    console.log("[v0] Utilizador nao encontrado:", email)
     return null
   }
 
+  const isPasswordValid = db.comparePassword(password, user.password)
+  if (!isPasswordValid) {
+    console.log("[v0] Senha invalida para:", email)
+    return null
+  }
+
+  console.log("[v0] Login bem-sucedido para:", email)
   return user
 }

@@ -4,8 +4,10 @@ import { NextResponse } from "next/server"
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json()
+    console.log("[v0] Login attempt:", email)
 
     if (!email || !password) {
+      console.log("[v0] Email ou senha vazios")
       return NextResponse.json(
         { error: "Email e senha sao obrigatorios" },
         { status: 400 }
@@ -15,11 +17,14 @@ export async function POST(request: Request) {
     const user = await loginUser(email, password)
 
     if (!user) {
+      console.log("[v0] Falha no login para:", email)
       return NextResponse.json(
         { error: "Email ou senha invalidos" },
         { status: 401 }
       )
     }
+
+    console.log("[v0] Login sucesso para:", email, "- ID:", user.id)
 
     const response = NextResponse.json({
       success: true,
