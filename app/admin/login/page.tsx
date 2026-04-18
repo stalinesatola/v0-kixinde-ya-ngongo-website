@@ -18,8 +18,6 @@ export default function LoginPage() {
     setError("")
     setLoading(true)
 
-    console.log("[v0] Iniciando login com email:", email)
-
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -27,10 +25,7 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       })
 
-      console.log("[v0] Resposta do servidor:", response.status)
-
       const data = await response.json()
-      console.log("[v0] Dados da resposta:", data)
 
       if (!response.ok) {
         setError(data.error || "Falha no login")
@@ -38,12 +33,9 @@ export default function LoginPage() {
         return
       }
 
-      console.log("[v0] Login sucesso! Redirecionando...")
-      // Navigate after successful login
       router.push("/admin/dashboard")
       router.refresh()
     } catch (err) {
-      console.error("[v0] Erro de conexão:", err)
       setError("Erro ao conectar com o servidor")
       setLoading(false)
     }
