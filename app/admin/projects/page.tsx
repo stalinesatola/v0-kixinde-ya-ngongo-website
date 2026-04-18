@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Download, Trash2, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import Image from "next/image"
 import type { User, Project } from "@/lib/types"
 
 export default function AdminProjectsPage() {
@@ -90,14 +89,7 @@ export default function AdminProjectsPage() {
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <Image
-            src="/images/logo-horizontal.png"
-            alt="KIXINDE YA NGONGO"
-            width={150}
-            height={40}
-            className="h-8 w-auto"
-            priority
-          />
+          <h1 className="text-lg font-bold text-foreground font-serif">KIXINDE YA NGONGO</h1>
         </div>
       </header>
 
