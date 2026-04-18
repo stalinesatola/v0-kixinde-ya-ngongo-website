@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import Image from "next/image"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -55,14 +54,6 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <Image
-            src="/images/logo-horizontal.png"
-            alt="KIXINDE YA NGONGO"
-            width={200}
-            height={50}
-            className="h-12 w-auto mx-auto mb-6"
-            priority
-          />
           <h1 className="text-2xl font-bold text-foreground font-serif">Painel Administrativo</h1>
           <p className="text-sm text-muted-foreground mt-2 font-sans">
             Gestão de Projectos de Arquitectura

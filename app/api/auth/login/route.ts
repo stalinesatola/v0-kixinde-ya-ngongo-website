@@ -37,12 +37,14 @@ export async function POST(request: Request) {
     })
 
     // Set session cookie
+    console.log("[v0] Definindo cookie com userId:", user.id)
     response.cookies.set("kixinde_session", user.id, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
     })
+    console.log("[v0] Cookie definido - headers:", response.headers.getSetCookie())
 
     return response
   } catch (error) {

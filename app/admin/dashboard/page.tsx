@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { LogOut, Plus, Download, FileText, FolderOpen } from "lucide-react"
-import Image from "next/image"
 import type { User, Project } from "@/lib/types"
 
 export default function AdminDashboard() {
@@ -59,14 +58,6 @@ export default function AdminDashboard() {
       <header className="border-b border-border bg-card">
         <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Image
-              src="/images/logo-horizontal.png"
-              alt="KIXINDE YA NGONGO"
-              width={150}
-              height={40}
-              className="h-8 w-auto"
-              priority
-            />
             <div>
               <p className="text-xs text-muted-foreground font-sans">Bem vindo,</p>
               <p className="font-semibold text-foreground font-sans">{user?.name}</p>

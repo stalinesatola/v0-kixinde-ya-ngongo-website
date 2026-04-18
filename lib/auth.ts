@@ -5,12 +5,19 @@ const SESSION_COOKIE_NAME = "kixinde_session"
 
 export async function getSessionUser() {
   try {
+    console.log("[v0] getSessionUser - iniciando")
     const cookieStore = await cookies()
     const userId = cookieStore.get(SESSION_COOKIE_NAME)?.value
+    
+    console.log("[v0] getSessionUser - userId do cookie:", userId)
 
-    if (!userId) return null
+    if (!userId) {
+      console.log("[v0] getSessionUser - nenhum userId no cookie")
+      return null
+    }
 
     const user = await db.getUser(userId)
+    console.log("[v0] getSessionUser - user encontrado:", user?.id, user?.email)
     return user
   } catch (error) {
     console.error("[v0] Erro ao obter sessao:", error)
