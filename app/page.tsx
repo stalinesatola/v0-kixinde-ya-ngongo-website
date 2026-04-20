@@ -43,7 +43,7 @@ export default function HomePage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="bg-[#25D366] text-[#ffffff] hover:bg-[#20b858] border-[#25D366] font-sans px-8">
+              <Button asChild size="lg" className="bg-[#25D366] text-[#ffffff] hover:bg-[#20b858] font-sans px-8">
                 <a
                   href="https://wa.me/244926899866?text=Olá! Gostaria de mais informações."
                   target="_blank"
