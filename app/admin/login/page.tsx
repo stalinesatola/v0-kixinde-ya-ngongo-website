@@ -5,44 +5,45 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useNotification } from "@/hooks/useNotification"
+import { errorLogger } from "@/lib/error-logger"
+import { fetchJson } from "@/lib/fetch-wrapper"
 
 export default function LoginPage() {
   const router = useRouter()
+  const notify = useNotification()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
     setLoading(true)
 
     try {
-      console.log("[v0] Login - enviando para /api/auth/login")
-      const response = await fetch("/api/auth/login", {
+      const toastId = notify.loading("A fazer login...")
+      
+      const data = await fetchJson("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       })
 
-      console.log("[v0] Login - resposta status:", response.status)
-      const data = await response.json()
-      console.log("[v0] Login - resposta data:", data)
-
-      if (!response.ok) {
-        console.log("[v0] Login - erro:", data.error)
-        setError(data.error || "Falha no login")
+      if (!data.success) {
+        const errorMsg = data.error?.message || "Email ou senha inválidos"
+        notify.error(errorMsg, data.error?.id)
         setLoading(false)
         return
       }
 
-      console.log("[v0] Login - sucesso! redirecionando para dashboard")
-      setLoading(false)
-      router.push("/admin/dashboard")
+      notify.success("Login realizado com sucesso!", { duration: 2000 })
+      setTimeout(() => router.push("/admin/dashboard"), 1000)
     } catch (err) {
-      console.error("[v0] Login - erro na requisição:", err)
-      setError("Erro ao conectar com o servidor")
+      const errorId = errorLogger.error(
+        "Login falhou",
+        { email },
+        err instanceof Error ? err : new Error(String(err))
+      )
+      notify.error("Erro ao fazer login", errorId)
       setLoading(false)
     }
   }
@@ -69,12 +70,6 @@ export default function LoginPage() {
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-6 bg-card border border-border rounded-lg p-6">
-            {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <p className="text-sm text-red-600 dark:text-red-400 font-sans">{error}</p>
-              </div>
-            )}
-
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium font-sans">
                 Email
