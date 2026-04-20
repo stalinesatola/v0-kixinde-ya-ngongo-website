@@ -114,12 +114,6 @@ export default function LoginPage() {
             >
               {loading ? "A conectar..." : "Entrar"}
             </Button>
-
-            <div className="text-center text-xs text-muted-foreground font-sans">
-              <p>
-                Demo: <span className="font-mono">admin@kixindeyangongo.ao</span> / <span className="font-mono">demo123</span>
-              </p>
-            </div>
           </form>
         </div>
       </main>

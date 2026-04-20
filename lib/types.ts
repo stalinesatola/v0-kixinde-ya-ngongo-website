@@ -12,6 +12,58 @@ export interface User {
   updatedAt: Date
 }
 
+export interface SubscriptionPlan {
+  id: string
+  name: string // "Free", "Professional", "Enterprise"
+  description: string
+  price: number // in cents (e.g., 9900 = 99.00)
+  currency: "AOA" | "USD" | "EUR"
+  billingPeriod: "monthly" | "yearly"
+  projectsLimit: number
+  features: string[]
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface PaymentMethod {
+  id: string
+  name: string // "Stripe Card", "Bank Transfer", "Paypal"
+  type: "stripe" | "bank_transfer" | "paypal" | "cash"
+  isActive: boolean
+  config: Record<string, any> // Stripe key, bank details, etc
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface UserSubscription {
+  id: string
+  userId: string
+  planId: string
+  status: "active" | "inactive" | "cancelled" | "expired"
+  startDate: Date
+  expiresAt: Date
+  paymentMethodId?: string
+  autoRenew: boolean
+  projectsUsed: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface PaymentTransaction {
+  id: string
+  userId: string
+  subscriptionId: string
+  amount: number
+  currency: "AOA" | "USD" | "EUR"
+  status: "pending" | "completed" | "failed" | "refunded"
+  paymentMethodId: string
+  stripePaymentId?: string
+  invoiceUrl?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface Subscription {
   id: string
   userId: string
@@ -62,6 +114,15 @@ export interface ProjectLog {
   action: "created" | "updated" | "generated" | "downloaded" | "shared"
   details: string
   timestamp: Date
+}
+
+export interface TelegramConfig {
+  id: string
+  botToken: string
+  chatId: string
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface Session {
