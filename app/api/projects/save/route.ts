@@ -2,6 +2,7 @@ import { getSessionUser } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
 import type { Project } from "@/lib/types"
+import { sendTelegramNotification, formatProjectNotification } from "@/lib/telegram-utils"
 
 export async function POST(request: Request) {
   try {
@@ -37,6 +38,10 @@ export async function POST(request: Request) {
     }
 
     const project = await db.createProject(projectData)
+
+    // Send Telegram notification
+    const telegramMessage = formatProjectNotification(project)
+    await sendTelegramNotification(telegramMessage)
 
     return NextResponse.json({
       success: true,

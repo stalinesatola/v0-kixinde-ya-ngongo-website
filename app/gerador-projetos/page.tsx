@@ -90,14 +90,38 @@ const initialFormData: FormData = {
 }
 
 export default function GeradorProjetosPage() {
-  const [step, setStep] = useState<"form" | "generating" | "result">("form")
+  const [step, setStep] = useState<"form" | "generating" | "result" | "no-subscription">("form")
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [streamContent, setStreamContent] = useState("")
   const [isStreaming, setIsStreaming] = useState(false)
   const [showTerrainMap, setShowTerrainMap] = useState(false)
   const [whatsappLink, setWhatsappLink] = useState<string>("")
   const [projectName, setProjectName] = useState<string>("")
+  const [hasSubscription, setHasSubscription] = useState<boolean>(true)
   const abortRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    // Check user subscription on mount
+    const checkSubscription = async () => {
+      try {
+        const response = await fetch("/api/subscription/check")
+        if (!response.ok) {
+          setHasSubscription(false)
+          setStep("no-subscription")
+          return
+        }
+        const data = await response.json()
+        if (!data.hasActiveSubscription) {
+          setHasSubscription(false)
+          setStep("no-subscription")
+        }
+      } catch (error) {
+        console.error("[v0] Error checking subscription:", error)
+      }
+    }
+    
+    checkSubscription()
+  }, [])
   const resultRef = useRef<HTMLDivElement>(null)
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -442,6 +466,42 @@ export default function GeradorProjetosPage() {
 
     return (
       <div className="pt-[73px]">
+        {/* No Subscription Message */}
+        {step === "no-subscription" && (
+          <section className="min-h-[calc(100vh-73px)] bg-background flex items-center justify-center px-4">
+            <div className="max-w-md text-center">
+              <div className="mb-6">
+                <MessageCircle className="h-16 w-16 mx-auto text-[#F7A71C] opacity-80" />
+              </div>
+              <h1 className="text-2xl font-bold text-foreground mb-2 font-serif">Sem Subscrição Ativa</h1>
+              <p className="text-muted-foreground mb-6 font-sans">
+                Precisa de uma subscrição ativa para gerar projectos. Escolha um plano para continuar.
+              </p>
+              <div className="flex gap-3 flex-col sm:flex-row">
+                <Button
+                  onClick={() => {
+                    window.location.href = "/pricing"
+                  }}
+                  className="bg-[#F7A71C] text-[#303030] hover:bg-[#d99116] font-sans font-semibold flex-1"
+                >
+                  Ver Planos
+                </Button>
+                <Button
+                  onClick={() => {
+                    window.location.href = "/admin/dashboard"
+                  }}
+                  variant="outline"
+                  className="border-border font-sans flex-1"
+                >
+                  Voltar ao Painel
+                </Button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {step !== "no-subscription" && (
+        <>
         {/* Top bar */}
         <section className="border-b border-border bg-background sticky top-[73px] z-40">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
@@ -564,6 +624,8 @@ export default function GeradorProjetosPage() {
             )}
           </div>
         </section>
+        </>
+        )}
       </div>
     )
   }

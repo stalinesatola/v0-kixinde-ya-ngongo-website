@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { LogOut, Plus, FolderOpen } from "lucide-react"
+import { LogOut, Plus, FolderOpen, CreditCard, MessageCircle } from "lucide-react"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -78,6 +78,22 @@ export default function DashboardPage() {
             <p className="text-muted-foreground mt-2 font-sans">Total: {projects.length} projectos</p>
           </div>
           <div className="flex gap-3">
+            <Button
+              onClick={() => router.push("/admin/telegram-config")}
+              variant="outline"
+              className="border-border hover:bg-secondary font-sans"
+            >
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Telegram
+            </Button>
+            <Button
+              onClick={() => router.push("/admin/subscription-plans")}
+              variant="outline"
+              className="border-border hover:bg-secondary font-sans"
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Planos
+            </Button>
             <Button
               onClick={() => router.push("/admin/projects")}
               variant="outline"

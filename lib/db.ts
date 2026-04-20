@@ -1,4 +1,4 @@
-import { User, Project, Subscription, ProjectLog, Session } from "./types"
+import { User, Project, Subscription, ProjectLog, Session, SubscriptionPlan, PaymentMethod, UserSubscription, PaymentTransaction, TelegramConfig } from "./types"
 import crypto from "crypto"
 
 // In-memory database for MVP
@@ -6,6 +6,11 @@ class Database {
   private users: Map<string, User> = new Map()
   private projects: Map<string, Project> = new Map()
   private subscriptions: Map<string, Subscription> = new Map()
+  private subscriptionPlans: Map<string, SubscriptionPlan> = new Map()
+  private paymentMethods: Map<string, PaymentMethod> = new Map()
+  private userSubscriptions: Map<string, UserSubscription> = new Map()
+  private paymentTransactions: Map<string, PaymentTransaction> = new Map()
+  private telegramConfig: Map<string, TelegramConfig> = new Map()
   private logs: ProjectLog[] = []
   private sessions: Map<string, Session> = new Map()
 
@@ -29,8 +34,69 @@ class Database {
     }
     this.users.set(adminUser.id, adminUser)
 
-    // Create demo subscription
-    const adminSubscription: Subscription = {
+    // Create demo subscription plans
+    const freePlan: SubscriptionPlan = {
+      id: "plan-free",
+      name: "Free",
+      description: "Para experimentar",
+      price: 0,
+      currency: "AOA",
+      billingPeriod: "monthly",
+      projectsLimit: 3,
+      features: ["3 projectos por mês", "Suporte por email"],
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.subscriptionPlans.set(freePlan.id, freePlan)
+
+    const professionalPlan: SubscriptionPlan = {
+      id: "plan-pro",
+      name: "Professional",
+      description: "Para profissionais",
+      price: 9900, // 99.00
+      currency: "AOA",
+      billingPeriod: "monthly",
+      projectsLimit: 50,
+      features: ["50 projectos por mês", "Suporte prioritário", "Exportar PDF"],
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.subscriptionPlans.set(professionalPlan.id, professionalPlan)
+
+    const enterprisePlan: SubscriptionPlan = {
+      id: "plan-enterprise",
+      name: "Enterprise",
+      description: "Para empresas",
+      price: 29900, // 299.00
+      currency: "AOA",
+      billingPeriod: "monthly",
+      projectsLimit: 999,
+      features: ["Projectos ilimitados", "Suporte 24/7", "API access", "Custom branding"],
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.subscriptionPlans.set(enterprisePlan.id, enterprisePlan)
+
+    // Create admin subscription
+    const adminSubscription: UserSubscription = {
+      id: "user-sub-001",
+      userId: "admin-001",
+      planId: "plan-enterprise",
+      status: "active",
+      startDate: new Date(),
+      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+      autoRenew: true,
+      projectsUsed: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.userSubscriptions.set(adminSubscription.id, adminSubscription)
+
+    // Create demo subscription for backward compatibility
+    const adminSubscription2: Subscription = {
       id: "sub-001",
       userId: "admin-001",
       plan: "enterprise",
@@ -40,7 +106,7 @@ class Database {
       createdAt: new Date(),
       updatedAt: new Date(),
     }
-    this.subscriptions.set(adminSubscription.id, adminSubscription)
+    this.subscriptions.set(adminSubscription2.id, adminSubscription2)
   }
 
   // Users
@@ -141,6 +207,144 @@ class Database {
     }
     this.subscriptions.set(id, newSubscription)
     return newSubscription
+  }
+
+  // Subscription Plans
+  async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
+    return Array.from(this.subscriptionPlans.values())
+  }
+
+  async getSubscriptionPlan(id: string): Promise<SubscriptionPlan | null> {
+    return this.subscriptionPlans.get(id) || null
+  }
+
+  async createSubscriptionPlan(plan: Omit<SubscriptionPlan, "id" | "createdAt" | "updatedAt">): Promise<SubscriptionPlan> {
+    const id = `plan-${Date.now()}`
+    const newPlan: SubscriptionPlan = {
+      ...plan,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.subscriptionPlans.set(id, newPlan)
+    return newPlan
+  }
+
+  async updateSubscriptionPlan(id: string, updates: Partial<SubscriptionPlan>): Promise<SubscriptionPlan | null> {
+    const plan = this.subscriptionPlans.get(id)
+    if (!plan) return null
+    const updated = { ...plan, ...updates, updatedAt: new Date() }
+    this.subscriptionPlans.set(id, updated)
+    return updated
+  }
+
+  // User Subscriptions
+  async getUserSubscription(userId: string): Promise<UserSubscription | null> {
+    for (const sub of this.userSubscriptions.values()) {
+      if (sub.userId === userId && sub.status === "active") {
+        if (new Date() > sub.expiresAt) {
+          sub.status = "expired"
+          continue
+        }
+        return sub
+      }
+    }
+    return null
+  }
+
+  async createUserSubscription(subscription: Omit<UserSubscription, "id" | "createdAt" | "updatedAt">): Promise<UserSubscription> {
+    const id = `usub-${Date.now()}`
+    const newSubscription: UserSubscription = {
+      ...subscription,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.userSubscriptions.set(id, newSubscription)
+    return newSubscription
+  }
+
+  async updateUserSubscription(id: string, updates: Partial<UserSubscription>): Promise<UserSubscription | null> {
+    const sub = this.userSubscriptions.get(id)
+    if (!sub) return null
+    const updated = { ...sub, ...updates, updatedAt: new Date() }
+    this.userSubscriptions.set(id, updated)
+    return updated
+  }
+
+  // Payment Methods
+  async getPaymentMethods(): Promise<PaymentMethod[]> {
+    return Array.from(this.paymentMethods.values()).filter(m => m.isActive)
+  }
+
+  async getPaymentMethod(id: string): Promise<PaymentMethod | null> {
+    return this.paymentMethods.get(id) || null
+  }
+
+  async createPaymentMethod(method: Omit<PaymentMethod, "id" | "createdAt" | "updatedAt">): Promise<PaymentMethod> {
+    const id = `pm-${Date.now()}`
+    const newMethod: PaymentMethod = {
+      ...method,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.paymentMethods.set(id, newMethod)
+    return newMethod
+  }
+
+  // Payment Transactions
+  async createPaymentTransaction(transaction: Omit<PaymentTransaction, "id" | "createdAt" | "updatedAt">): Promise<PaymentTransaction> {
+    const id = `trans-${Date.now()}`
+    const newTransaction: PaymentTransaction = {
+      ...transaction,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.paymentTransactions.set(id, newTransaction)
+    return newTransaction
+  }
+
+  async getPaymentTransactions(userId: string): Promise<PaymentTransaction[]> {
+    return Array.from(this.paymentTransactions.values()).filter(t => t.userId === userId)
+  }
+
+  async updatePaymentTransaction(id: string, updates: Partial<PaymentTransaction>): Promise<PaymentTransaction | null> {
+    const trans = this.paymentTransactions.get(id)
+    if (!trans) return null
+    const updated = { ...trans, ...updates, updatedAt: new Date() }
+    this.paymentTransactions.set(id, updated)
+    return updated
+  }
+
+  // Telegram Config
+  async getTelegramConfig(): Promise<TelegramConfig | null> {
+    // Return the first active config
+    for (const config of this.telegramConfig.values()) {
+      if (config.isActive) return config
+    }
+    return null
+  }
+
+  async createTelegramConfig(config: Omit<TelegramConfig, "id" | "createdAt" | "updatedAt">): Promise<TelegramConfig> {
+    const id = `tg-${Date.now()}`
+    const newConfig: TelegramConfig = {
+      ...config,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.telegramConfig.set(id, newConfig)
+    return newConfig
+  }
+
+  async updateTelegramConfig(id: string, updates: Partial<TelegramConfig>): Promise<TelegramConfig | null> {
+    const config = this.telegramConfig.get(id)
+    if (!config) return null
+    const updated = { ...config, ...updates, updatedAt: new Date() }
+    this.telegramConfig.set(id, updated)
+    return updated
   }
 
   // Logs
