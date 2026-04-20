@@ -143,6 +143,29 @@ export default function GeradorProjetosPage() {
       setStep("result")
     } finally {
       setIsStreaming(false)
+      
+      // Save project to database
+      await saveProjectToDatabase(generatedProjectName)
+    }
+  }
+
+  const saveProjectToDatabase = async (projectName: string) => {
+    try {
+      const response = await fetch("/api/projects/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectName,
+          ...formData,
+          generatedContent: streamContent,
+        }),
+      })
+
+      if (!response.ok) {
+        console.warn("[v0] Nao foi possivel guardar o projecto na base de dados")
+      }
+    } catch (error) {
+      console.warn("[v0] Erro ao guardar projecto:", error)
     }
   }
 
