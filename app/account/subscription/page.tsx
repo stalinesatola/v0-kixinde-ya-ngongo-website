@@ -6,8 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Check, AlertCircle, CreditCard, Calendar, Zap } from 'lucide-react'
 import type { UserSubscription, SubscriptionPlan, PaymentTransaction } from '@/lib/types'
 
-export const dynamic = 'force-dynamic'
-
 export default function SubscriptionAccountPage() {
   const router = useRouter()
   const [subscription, setSubscription] = useState<UserSubscription | null>(null)
