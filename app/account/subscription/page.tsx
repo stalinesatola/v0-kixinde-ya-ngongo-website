@@ -67,9 +67,9 @@ export default function SubscriptionAccountPage() {
     )
   }
 
-  const isActive = subscription.status === 'active' && new Date() < subscription.expiresAt
+  const isActive = subscription.status === 'active' && new Date() < new Date(subscription.expiresAt)
   const daysUntilExpiry = Math.ceil(
-    (subscription.expiresAt.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+    (new Date(subscription.expiresAt).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
   )
 
   return (
@@ -160,8 +160,8 @@ export default function SubscriptionAccountPage() {
                 <span className="text-sm text-muted-foreground font-sans">Período Atual</span>
               </div>
               <p className="text-sm text-foreground font-sans">
-                {subscription.startDate.toLocaleDateString('pt-PT')} a{' '}
-                {subscription.expiresAt.toLocaleDateString('pt-PT')}
+                {new Date(subscription.startDate).toLocaleDateString('pt-PT')} a{' '}
+                {new Date(subscription.expiresAt).toLocaleDateString('pt-PT')}
               </p>
             </div>
 

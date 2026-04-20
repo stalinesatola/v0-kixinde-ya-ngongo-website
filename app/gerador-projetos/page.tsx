@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { TerrainMap } from "@/components/terrain-map"
 import { IrregularTerrainCalculator } from "@/components/irregular-terrain-calculator"
+import { House3DViewer } from "@/components/house-3d-viewer"
 
 const projectTypes = [
   { value: "Casa", icon: "🏠", subTypes: [] },
@@ -596,6 +597,19 @@ export default function GeradorProjetosPage() {
                     <div className="prose-sm">{renderMarkdown(section.content)}</div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* 3D Visualization */}
+            {!isStreaming && streamContent && (
+              <div className="mt-12">
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-foreground font-serif mb-2">Visualização 3D</h3>
+                  <p className="text-sm text-muted-foreground font-sans">Vire a câmara para explorar o projeto simulado</p>
+                </div>
+                <div className="rounded-lg overflow-hidden border border-border">
+                  <House3DViewer projectData={formData} />
+                </div>
               </div>
             )}
 
