@@ -53,12 +53,12 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b border-border bg-card">
         <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground font-serif">Painel Admin</h1>
-            <p className="text-sm text-muted-foreground font-sans">Bem vindo, {user?.name}</p>
+            <h1 className="text-xl font-bold text-foreground font-serif">KIXINDE YA NGONGO</h1>
+            <p className="text-xs text-muted-foreground font-sans mt-1">Bem vindo, {user?.name}</p>
           </div>
           <Button
             onClick={handleLogout}
@@ -71,10 +71,10 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-12">
+      <main className="flex-1 mx-auto w-full max-w-7xl px-6 py-12">
         <div className="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-foreground font-serif">Projectos</h2>
+            <h2 className="text-3xl font-bold text-foreground font-serif">Painel Administrativo</h2>
             <p className="text-muted-foreground mt-2 font-sans">Total: {projects.length} projectos</p>
           </div>
           <div className="flex gap-3">
@@ -109,7 +109,7 @@ export default function DashboardPage() {
         ) : (
           <div className="grid gap-4">
             {projects.map((project: any) => (
-              <div key={project.id} className="p-4 border border-border rounded-lg bg-card">
+              <div key={project.id} className="p-4 border border-border rounded-lg bg-card hover:border-[#F7A71C]/50 transition-colors">
                 <h3 className="font-semibold text-foreground font-sans">{project.projectName}</h3>
                 <p className="text-sm text-muted-foreground font-sans mt-1">{project.location}</p>
                 <p className="text-xs text-muted-foreground font-sans mt-2">
@@ -120,6 +120,24 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
+
+      <footer className="border-t border-border bg-card mt-auto">
+        <div className="mx-auto max-w-7xl px-6 py-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-muted-foreground font-sans">
+              © 2024 KIXINDE YA NGONGO. Todos os direitos reservados.
+            </p>
+            <div className="flex gap-4 text-xs">
+              <a href="mailto:info@kixindeyangongo.ao" className="text-muted-foreground hover:text-foreground transition-colors font-sans">
+                Contacte-nos
+              </a>
+              <a href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors font-sans">
+                Privacidade
+              </a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
