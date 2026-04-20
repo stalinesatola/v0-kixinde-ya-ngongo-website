@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ArrowLeft, Save, AlertCircle, CheckCircle } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default function TelegramSettingsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)

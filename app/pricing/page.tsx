@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Check } from 'lucide-react'
 import type { SubscriptionPlan } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+
 export default function PricingPage() {
   const router = useRouter()
   const [plans, setPlans] = useState<SubscriptionPlan[]>([])

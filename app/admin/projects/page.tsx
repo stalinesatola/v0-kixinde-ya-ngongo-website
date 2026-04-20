@@ -7,6 +7,8 @@ import { ArrowLeft, Download, Trash2, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import type { User, Project } from "@/lib/types"
 
+export const dynamic = 'force-dynamic'
+
 export default function AdminProjectsPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)

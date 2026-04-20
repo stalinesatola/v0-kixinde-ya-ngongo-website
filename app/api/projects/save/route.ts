@@ -1,5 +1,7 @@
 import { getSessionUser } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { createSuccessResponse, createErrorResponse } from "@/lib/api-response"
+import { errorLogger } from "@/lib/error-logger"
 import { NextResponse } from "next/server"
 import type { Project } from "@/lib/types"
 import { sendTelegramNotification, formatProjectNotification } from "@/lib/telegram-utils"
@@ -7,8 +9,6 @@ import { sendTelegramNotification, formatProjectNotification } from "@/lib/teleg
 export async function POST(request: Request) {
   try {
     const user = await getSessionUser()
-
-    // Allow both authenticated and anonymous project creation
     const data = await request.json()
 
     const projectData: Omit<Project, "id" | "createdAt" | "updatedAt"> = {
@@ -43,14 +43,15 @@ export async function POST(request: Request) {
     const telegramMessage = formatProjectNotification(project)
     await sendTelegramNotification(telegramMessage)
 
-    return NextResponse.json({
-      success: true,
-      project,
-    })
+    return NextResponse.json(createSuccessResponse({ project }))
   } catch (error) {
-    console.error("[v0] Erro ao guardar projeto:", error)
+    const errorId = errorLogger.error(
+      "Erro ao guardar projeto",
+      { endpoint: "/api/projects/save" },
+      error instanceof Error ? error : new Error(String(error))
+    )
     return NextResponse.json(
-      { error: "Erro ao guardar projeto" },
+      createErrorResponse("Erro ao guardar projeto", 500, errorId),
       { status: 500 }
     )
   }

@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { ArrowLeft, Plus, Edit2, Trash2, Check } from 'lucide-react'
 import type { SubscriptionPlan } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+
 export default function SubscriptionPlansPage() {
   const router = useRouter()
   const [plans, setPlans] = useState<SubscriptionPlan[]>([])

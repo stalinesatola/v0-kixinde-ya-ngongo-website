@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { ArrowLeft, Lock, Check } from 'lucide-react'
 import type { SubscriptionPlan } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+
 export default function CheckoutPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
