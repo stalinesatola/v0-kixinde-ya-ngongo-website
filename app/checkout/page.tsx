@@ -1,19 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ArrowLeft, Lock, Check } from 'lucide-react'
 import type { SubscriptionPlan } from '@/lib/types'
 
-export const dynamic = 'force-dynamic'
-
 export default function CheckoutPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const planId = searchParams.get('planId')
+  const [planId, setPlanId] = useState<string | null>(null)
   
   const [plan, setPlan] = useState<SubscriptionPlan | null>(null)
   const [loading, setLoading] = useState(true)
@@ -24,6 +21,12 @@ export default function CheckoutPage() {
     expiryDate: '',
     cvv: '',
   })
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search)
+    const id = searchParams.get('planId')
+    setPlanId(id)
+  }, [])
 
   useEffect(() => {
     if (!planId) {
