@@ -68,7 +68,7 @@ export default function CheckoutPage() {
 
       if (response.ok) {
         const data = await response.json()
-        router.push(`/account/subscription?success=true&subscriptionId=${data.subscriptionId}`)
+        router.push(`/pricing?success=true&subscriptionId=${data.subscriptionId}`)
       } else {
         alert('Erro ao processar pagamento')
       }
