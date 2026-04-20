@@ -1,17 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, Building2, Compass, Cpu, Ruler, Map, Box, FileText, BrainCircuit, Layers, ScanLine, Sparkles } from "lucide-react"
+import { ArrowRight, Building2, Compass, Cpu, BrainCircuit, Sparkles, ScanLine, Box } from "lucide-react"
 import { Button } from "@/components/ui/button"
-
-const services = [
-  { icon: Building2, title: "Arquitetura", desc: "Projetos residenciais, comerciais e conceptuais com identidade africana." },
-  { icon: Ruler, title: "Engenharia", desc: "Soluções estruturais, civis e geotécnicas para cada desafio." },
-  { icon: Compass, title: "Construção", desc: "Planeamento e gestão de obras com eficiência e precisão." },
-  { icon: Map, title: "Topografia", desc: "Levantamentos topográficos e análise digital do terreno." },
-  { icon: Layers, title: "Planeamento Urbano", desc: "Design urbano inteligente adaptado ao território angolano." },
-  { icon: Box, title: "Visualização 3D", desc: "Renders fotorrealistas e modelagem digital dos projetos." },
-  { icon: FileText, title: "Consultoria Técnica", desc: "Apoio especializado em todas as fases do projeto." },
-]
 
 const innovations = [
   { icon: BrainCircuit, title: "Inteligência Artificial", desc: "Algoritmos de IA para otimizar projetos e prever resultados de engenharia." },
@@ -63,60 +53,6 @@ export default function HomePage() {
                 </a>
               </Button>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Company Overview */}
-      <section className="py-24 bg-background">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-accent font-sans">Quem Somos</p>
-              <h2 className="mb-6 text-3xl font-bold text-foreground md:text-4xl font-serif text-balance">
-                Conhecimento territorial aliado à tecnologia
-              </h2>
-              <p className="mb-6 text-base leading-relaxed text-muted-foreground font-sans">
-                A KIXINDE YA NGONGO é uma empresa multidisciplinar angolana que integra arquitetura, engenharia, planeamento de construção, topografia, planeamento urbano e inteligência artificial para projetar e desenvolver projetos inteligentes adaptados ao território africano.
-              </p>
-              <p className="text-base leading-relaxed text-muted-foreground font-sans">
-                Focamos em projetos residenciais, comerciais, urbanos e de infraestrutura utilizando tecnologias digitais e expertise em engenharia, unindo a sabedoria do território à tecnologia do futuro.
-              </p>
-            </div>
-            <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
-              <Image
-                src="/images/company.jpg"
-                alt="Escritório moderno da KIXINDE YA NGONGO"
-                fill
-                className="object-cover"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Services */}
-      <section className="py-24 bg-secondary">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="mb-16 text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-accent font-sans">Nossos Serviços</p>
-            <h2 className="text-3xl font-bold text-foreground md:text-4xl font-serif text-balance">
-              Soluções completas para cada projeto
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {services.map((service, i) => (
-              <div
-                key={i}
-                className="group rounded-lg border border-border bg-background p-8 hover:border-accent/40 hover:shadow-lg transition-all"
-              >
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-accent/10">
-                  <service.icon className="h-6 w-6 text-accent" />
-                </div>
-                <h3 className="mb-2 text-lg font-semibold text-foreground font-serif">{service.title}</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground font-sans">{service.desc}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
