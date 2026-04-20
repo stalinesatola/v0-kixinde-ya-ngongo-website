@@ -136,24 +136,6 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
-
-      <footer className="border-t border-border bg-card mt-auto">
-        <div className="mx-auto max-w-7xl px-6 py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-muted-foreground font-sans">
-              © 2024 KIXINDE YA NGONGO. Todos os direitos reservados.
-            </p>
-            <div className="flex gap-4 text-xs">
-              <a href="mailto:info@kixindeyangongo.ao" className="text-muted-foreground hover:text-foreground transition-colors font-sans">
-                Contacte-nos
-              </a>
-              <a href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors font-sans">
-                Privacidade
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

@@ -7,22 +7,7 @@ import { Menu, X, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Empresa", href: "/empresa" },
-  {
-    label: "Serviços",
-    href: "/servicos",
-    children: [
-      { label: "Arquitetura", href: "/arquitetura" },
-      { label: "Engenharia", href: "/engenharia" },
-      { label: "Todos os Serviços", href: "/servicos" },
-    ],
-  },
-  { label: "Como Funciona", href: "/como-funciona" },
-  { label: "Gerador IA", href: "/gerador-projetos" },
-  { label: "Portfólio", href: "/portfolio" },
-  { label: "Pacotes", href: "/pacotes" },
-  { label: "Contacto", href: "/contacto" },
+  // Links removidos conforme solicitado
 ]
 
 export function Navbar() {
