@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowLeft, Save, AlertCircle, CheckCircle } from 'lucide-react'
+import { Save, AlertCircle, CheckCircle } from 'lucide-react'
+import { AdminHeader } from '@/components/admin-header'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,6 +14,7 @@ export default function TelegramSettingsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [user, setUser] = useState<any>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error' | null; text: string }>({
     type: null,
     text: '',
@@ -24,8 +26,24 @@ export default function TelegramSettingsPage() {
   })
 
   useEffect(() => {
-    fetchConfig()
+    loadUserData()
   }, [])
+
+  const loadUserData = async () => {
+    try {
+      const response = await fetch('/api/admin/user')
+      if (!response.ok) {
+        router.push('/admin/login')
+        return
+      }
+      const data = await response.json()
+      setUser(data.user)
+      fetchConfig()
+    } catch (err) {
+      console.error('[v0] Erro ao carregar dados:', err)
+      router.push('/admin/login')
+    }
+  }
 
   const fetchConfig = async () => {
     console.log('[v0] Carregando configuração Telegram...')
@@ -100,29 +118,19 @@ export default function TelegramSettingsPage() {
   }
 
   if (loading) {
-    return <div className="p-6">Carregando...</div>
+    return (
+      <div className="min-h-screen bg-background">
+        <AdminHeader title="Configuração Telegram" />
+        <div className="p-6">Carregando...</div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-background pt-[73px]">
-      <div className="mx-auto max-w-2xl px-6 py-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button
-            onClick={() => router.push('/admin/dashboard')}
-            variant="ghost"
-            size="icon"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground font-serif">Configuração Telegram</h1>
-            <p className="text-muted-foreground mt-1 font-sans">
-              Configure notificações automáticas de projetos no Telegram
-            </p>
-          </div>
-        </div>
-
+    <div className="min-h-screen bg-background flex flex-col">
+      <AdminHeader title="Configuração Telegram" userName={user?.name} />
+      
+      <div className="mx-auto max-w-2xl px-6 py-8 w-full">
         {/* Messages */}
         {message.type && (
           <div
