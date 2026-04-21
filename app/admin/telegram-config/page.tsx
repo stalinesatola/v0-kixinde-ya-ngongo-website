@@ -104,7 +104,7 @@ export default function TelegramSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-[73px]">
       <div className="mx-auto max-w-2xl px-6 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
