@@ -25,7 +25,7 @@ export default function AIConfigPage() {
     provider: 'openai',
     model: 'gpt-4-mini',
     apiKey: '',
-    systemPrompt: 'You are a helpful assistant for architectural projects. Help users with their questions about building design, materials, and construction.',
+    systemPrompt: 'You are a helpful assistant for architectural projects.',
     isActive: true,
     temperature: 0.7,
     maxTokens: 1000,
@@ -52,36 +52,16 @@ export default function AIConfigPage() {
   }
 
   const fetchConfig = async () => {
-
-  useEffect(() => {
-    fetchConfig()
-  }, [])
-
-  const fetchConfig = async () => {
-    console.log('[v0] Carregando configuração de IA...')
     try {
       const response = await fetch('/api/admin/ai-config')
-      console.log('[v0] Resposta fetchConfig:', response.status)
-      
       if (response.ok) {
         const data = await response.json()
-        console.log('[v0] Config carregada:', data)
         if (data.data?.config) {
-          setFormData({
-            provider: data.data.config.provider || 'openai',
-            model: data.data.config.model || 'gpt-4-mini',
-            apiKey: '', // Nunca retornar chave por segurança
-            systemPrompt: data.data.config.system_prompt || formData.systemPrompt,
-            isActive: data.data.config.is_active !== false,
-            temperature: data.data.config.temperature || 0.7,
-            maxTokens: data.data.config.max_tokens || 1000,
-          })
+          setFormData(data.data.config)
         }
-      } else {
-        console.error('[v0] Erro ao carregar config:', response.statusText)
       }
     } catch (error) {
-      console.error('[v0] Exceção ao carregar config:', error)
+      console.error('[v0] Erro ao carregar config:', error)
     } finally {
       setLoading(false)
     }
@@ -90,7 +70,6 @@ export default function AIConfigPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
-    console.log('[v0] Iniciando gravação de configuração IA')
 
     try {
       const response = await fetch('/api/admin/ai-config', {
@@ -99,11 +78,9 @@ export default function AIConfigPage() {
         body: JSON.stringify(formData),
       })
 
-      console.log('[v0] Resposta da API:', response.status)
       const responseData = await response.json()
 
       if (response.ok) {
-        console.log('[v0] Configuração IA guardada com sucesso')
         setMessage({
           type: 'success',
           text: 'Configuração de IA salva com sucesso!',
@@ -111,17 +88,16 @@ export default function AIConfigPage() {
         setTimeout(() => setMessage({ type: null, text: '' }), 3000)
       } else {
         const errorText = responseData.error?.message || 'Erro desconhecido'
-        const errorId = responseData.error?.id || ''
         setMessage({
           type: 'error',
-          text: `Erro ao salvar: ${errorText}${errorId ? ` (ID: ${errorId})` : ''}`,
+          text: `Erro ao salvar: ${errorText}`,
         })
       }
     } catch (error) {
-      console.error('[v0] Exceção ao salvar:', error)
+      console.error('[v0] Erro ao salvar:', error)
       setMessage({
         type: 'error',
-        text: `Erro ao salvar: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+        text: `Erro ao salvar configuração`,
       })
     } finally {
       setSaving(false)
@@ -169,14 +145,13 @@ export default function AIConfigPage() {
         )}
 
         {/* Form */}
-        <div className="p-6 border border-border rounded-lg bg-card space-y-8">
+        <div className="p-6 border border-border rounded-lg bg-card">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Provider Section */}
-            <div className="border-b border-border pb-6">
-              <h2 className="font-semibold text-lg text-foreground mb-4 font-serif">Provedor de IA</h2>
+            <div>
+              <h3 className="font-semibold text-foreground mb-4 font-serif">Provedor de IA</h3>
               
               <div className="space-y-4">
-                {/* Provider */}
                 <div>
                   <Label className="text-sm font-medium font-sans">Provedor</Label>
                   <select
@@ -188,27 +163,19 @@ export default function AIConfigPage() {
                     <option value="anthropic">Anthropic</option>
                     <option value="groq">Groq</option>
                   </select>
-                  <p className="text-xs text-muted-foreground mt-1 font-sans">
-                    Qual provedor de IA utilizar para as respostas
-                  </p>
                 </div>
 
-                {/* Model */}
                 <div>
                   <Label className="text-sm font-medium font-sans">Modelo</Label>
                   <Input
                     type="text"
                     value={formData.model}
                     onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                    placeholder="ex: gpt-4-mini, claude-opus, mixtral-8x7b-32768"
-                    className="mt-1 font-mono font-sans text-sm"
+                    placeholder="ex: gpt-4-mini"
+                    className="mt-1 font-mono text-sm"
                   />
-                  <p className="text-xs text-muted-foreground mt-1 font-sans">
-                    ID do modelo a usar. Ex: gpt-4-mini, claude-3-sonnet, etc
-                  </p>
                 </div>
 
-                {/* API Key */}
                 <div>
                   <Label className="text-sm font-medium font-sans">API Key</Label>
                   <Input
@@ -216,35 +183,30 @@ export default function AIConfigPage() {
                     value={formData.apiKey}
                     onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
                     placeholder="Cole aqui a sua API key"
-                    className="mt-1 font-mono font-sans text-xs"
+                    className="mt-1 font-mono text-xs"
                   />
                   <p className="text-xs text-muted-foreground mt-1 font-sans">
-                    API key do provedor. Será encriptada e não será exibida novamente
+                    Será encriptada e não será exibida novamente
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Behavior Section */}
-            <div className="border-b border-border pb-6">
-              <h2 className="font-semibold text-lg text-foreground mb-4 font-serif">Comportamento</h2>
+            <div className="border-t border-border pt-6">
+              <h3 className="font-semibold text-foreground mb-4 font-serif">Comportamento</h3>
               
               <div className="space-y-4">
-                {/* System Prompt */}
                 <div>
                   <Label className="text-sm font-medium font-sans">System Prompt</Label>
                   <Textarea
                     value={formData.systemPrompt}
                     onChange={(e) => setFormData({ ...formData, systemPrompt: e.target.value })}
                     placeholder="Instruções para a IA..."
-                    className="mt-1 min-h-[120px] font-sans text-sm"
+                    className="mt-1 min-h-[100px] font-sans text-sm"
                   />
-                  <p className="text-xs text-muted-foreground mt-1 font-sans">
-                    Instruções que definem o comportamento e contexto da IA
-                  </p>
                 </div>
 
-                {/* Temperature */}
                 <div>
                   <Label className="text-sm font-medium font-sans">Criatividade (Temperatura)</Label>
                   <div className="mt-1 flex items-center gap-4">
@@ -257,14 +219,10 @@ export default function AIConfigPage() {
                       onChange={(e) => setFormData({ ...formData, temperature: parseFloat(e.target.value) })}
                       className="flex-1"
                     />
-                    <span className="font-mono text-sm font-sans w-12 text-right">{formData.temperature.toFixed(1)}</span>
+                    <span className="font-mono text-sm w-12 text-right">{formData.temperature.toFixed(1)}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2 font-sans">
-                    0 = Determinístico (sempre igual), 1 = Criativo (variável)
-                  </p>
                 </div>
 
-                {/* Max Tokens */}
                 <div>
                   <Label className="text-sm font-medium font-sans">Comprimento Máximo (Tokens)</Label>
                   <Input
@@ -272,31 +230,30 @@ export default function AIConfigPage() {
                     value={formData.maxTokens}
                     onChange={(e) => setFormData({ ...formData, maxTokens: parseInt(e.target.value) })}
                     placeholder="1000"
-                    className="mt-1 font-sans"
+                    className="mt-1"
                   />
-                  <p className="text-xs text-muted-foreground mt-1 font-sans">
-                    Comprimento máximo das respostas (1 token ≈ 4 caracteres)
-                  </p>
                 </div>
               </div>
             </div>
 
             {/* Active Toggle */}
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="isActive"
-                checked={formData.isActive}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="w-4 h-4 rounded border-border cursor-pointer"
-              />
-              <Label htmlFor="isActive" className="text-sm font-medium font-sans cursor-pointer">
-                Ativar Chat de IA
-              </Label>
+            <div className="border-t border-border pt-6">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  checked={formData.isActive}
+                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  className="w-4 h-4 rounded border-border cursor-pointer"
+                />
+                <Label htmlFor="isActive" className="text-sm font-medium font-sans cursor-pointer">
+                  Ativar Chat de IA
+                </Label>
+              </div>
             </div>
 
             {/* Buttons */}
-            <div className="flex gap-3 pt-6 border-t border-border">
+            <div className="flex gap-3 pt-4 border-t border-border">
               <Button
                 type="submit"
                 disabled={saving}
@@ -319,40 +276,33 @@ export default function AIConfigPage() {
 
         {/* Test Section */}
         <div className="mt-8 p-6 border border-border rounded-lg bg-card">
-          <h2 className="font-semibold text-lg text-foreground mb-2 font-serif">Testar Configuração</h2>
-          <p className="text-sm text-muted-foreground mb-4 font-sans">
-            Teste a conexão com o provedor de IA
-          </p>
+          <h2 className="font-semibold text-foreground mb-4 font-serif">Testar Configuração</h2>
           <Button
             onClick={async () => {
               setTesting(true)
-              console.log('[v0] Testando configuração IA...')
               try {
                 const response = await fetch('/api/admin/ai-test', {
                   method: 'POST',
                 })
-                console.log('[v0] Resposta teste:', response.status)
                 const data = await response.json()
                 
                 if (response.ok) {
                   setMessage({
                     type: 'success',
-                    text: 'Teste de IA bem-sucedido! Provedor respondendo corretamente.',
+                    text: 'Teste bem-sucedido! Provedor respondendo.',
                   })
                   setTimeout(() => setMessage({ type: null, text: '' }), 4000)
                 } else {
                   const errorText = data.error?.message || 'Erro desconhecido'
-                  const errorId = data.error?.id || ''
                   setMessage({
                     type: 'error',
-                    text: `Erro no teste: ${errorText}${errorId ? ` (ID: ${errorId})` : ''}`,
+                    text: `Erro no teste: ${errorText}`,
                   })
                 }
               } catch (error) {
-                console.error('[v0] Exceção ao testar:', error)
                 setMessage({
                   type: 'error',
-                  text: `Erro ao testar: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+                  text: 'Erro ao testar',
                 })
               } finally {
                 setTesting(false)
