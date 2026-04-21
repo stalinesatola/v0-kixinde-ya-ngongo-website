@@ -68,24 +68,32 @@ export function AIChatWidget({ isOpen, onClose }: AIChatWidgetProps) {
           </div>
         )}
         
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${
-              message.role === 'user' ? 'justify-end' : 'justify-start'
-            }`}
-          >
+        {messages.map((message) => {
+          // Extract text from UIMessage parts
+          const messageText = message.parts
+            ?.filter((p: any) => p.type === 'text')
+            .map((p: any) => p.text)
+            .join('') || ''
+
+          return (
             <div
-              className={`max-w-xs px-4 py-2 rounded-lg ${
-                message.role === 'user'
-                  ? 'bg-[#F7A71C] text-[#303030]'
-                  : 'bg-secondary text-foreground'
-              } font-sans text-sm`}
+              key={message.id}
+              className={`flex ${
+                message.role === 'user' ? 'justify-end' : 'justify-start'
+              }`}
             >
-              {message.content}
+              <div
+                className={`max-w-xs px-4 py-2 rounded-lg ${
+                  message.role === 'user'
+                    ? 'bg-[#F7A71C] text-[#303030]'
+                    : 'bg-secondary text-foreground'
+                } font-sans text-sm`}
+              >
+                {messageText}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
 
         {isLoading && (
           <div className="flex justify-start">
