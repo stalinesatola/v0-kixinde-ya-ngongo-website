@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Montserrat, Poppins } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Toaster } from 'sonner'
 import './globals.css'
 import { Navbar } from '@/components/navbar'
@@ -56,6 +57,7 @@ export default function RootLayout({
           theme="dark"
         />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )
