@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { TerrainMap } from "@/components/terrain-map"
 import { IrregularTerrainCalculator } from "@/components/irregular-terrain-calculator"
+import { Project3DViewerWrapper } from "@/components/3d/project-viewer-wrapper"
 
 const projectTypes = [
   { value: "Casa", icon: "🏠", subTypes: [] },
@@ -599,6 +600,20 @@ export default function GeradorProjetosPage() {
               </div>
             )}
 
+            {/* 3D Visualization */}
+            {!isStreaming && streamContent && (
+              <div className="mt-12">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-foreground font-serif mb-2">Visualização 3D Interativa</h3>
+                  <p className="text-sm text-muted-foreground font-sans">
+                    Explore volumetria, plantas baixas, cortes, alçados e estrutura BIM do seu projeto. Use o mouse para rodar, zoom e navegar.
+                  </p>
+                </div>
+                <div className="rounded-lg overflow-hidden border border-border bg-card" style={{ height: '600px' }}>
+                  <Project3DViewerWrapper projectData={formData} />
+                </div>
+              </div>
+            )}
 
             {/* Bottom Actions */}
             {!isStreaming && streamContent && (
