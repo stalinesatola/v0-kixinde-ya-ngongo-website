@@ -1,30 +1,30 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-const protectedRoutes = ["/admin/dashboard", "/admin/projects"]
-const authRoutes = ["/admin/login"]
+const loginRoute = "/admin/login"
+const dashboardRoute = "/admin/dashboard"
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+  const isAdminRoute = pathname.startsWith("/admin")
+  const isLoginRoute = pathname === loginRoute
+  const sessionCookie = request.cookies.get("kixinde_session")
 
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
-  )
-  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route))
-
-  if (isProtectedRoute) {
-    const sessionCookie = request.cookies.get("kixinde_session")
-
-    if (!sessionCookie) {
-      return NextResponse.redirect(new URL("/admin/login", request.url))
+  // Se está na rota de login
+  if (isLoginRoute) {
+    // Se já tem sessão, redireciona para dashboard
+    if (sessionCookie) {
+      return NextResponse.redirect(new URL(dashboardRoute, request.url))
     }
+    // Deixa aceder ao login
+    return NextResponse.next()
   }
 
-  if (isAuthRoute) {
-    const sessionCookie = request.cookies.get("kixinde_session")
-
-    if (sessionCookie) {
-      return NextResponse.redirect(new URL("/admin/dashboard", request.url))
+  // Se está em rota admin (mas não é login)
+  if (isAdminRoute && !isLoginRoute) {
+    // Se não tem sessão, redireciona para login
+    if (!sessionCookie) {
+      return NextResponse.redirect(new URL(loginRoute, request.url))
     }
   }
 
