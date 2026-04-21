@@ -161,10 +161,8 @@ export function ProjectViewer3D({ projectData }: ProjectViewer3DProps) {
             </label>
           </div>
         </TabsContent>
-      </Tabs>
-    </div>
-  )
-}        {/* Estrutura BIM */}
+
+        {/* Estrutura BIM */}
         <TabsContent value="bim" className="flex-1 p-0">
           <Suspense fallback={<LoadingFallback />}>
             <SceneViewer
@@ -208,3 +206,7 @@ export function ProjectViewer3D({ projectData }: ProjectViewer3DProps) {
             </label>
           </div>
         </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
