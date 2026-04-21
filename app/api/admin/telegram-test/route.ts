@@ -40,6 +40,7 @@ Se você vê esta mensagem, tudo está funcionando corretamente!
 🎉 Parabéns! As notificações de projetos serão enviadas para este canal.
     `.trim()
 
+    console.log('[v0] Chamando sendTelegramNotification...')
     const success = await sendTelegramNotification(testMessage)
     console.log('[v0] Resultado do envio:', success)
 
@@ -47,9 +48,9 @@ Se você vê esta mensagem, tudo está funcionando corretamente!
       console.log('[v0] Teste enviado com sucesso')
       return NextResponse.json(createSuccessResponse({ message: 'Mensagem de teste enviada com sucesso' }))
     } else {
-      console.log('[v0] Falha ao enviar - sendTelegramNotification retornou false')
+      console.log('[v0] Falha ao enviar - sendTelegramNotification retornou false. Verifique os logs acima.')
       return NextResponse.json(
-        createErrorResponse('Erro ao enviar mensagem de teste', 500),
+        createErrorResponse('Erro ao enviar mensagem de teste. Verifique Bot Token e Chat ID. Consulte os logs para mais detalhes.', 500),
         { status: 500 }
       )
     }
