@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { TerrainMap } from "@/components/terrain-map"
 import { IrregularTerrainCalculator } from "@/components/irregular-terrain-calculator"
+import { Project3DViewerWrapper } from "@/components/3d/project-viewer-wrapper"
 
 const projectTypes = [
   { value: "Casa", icon: "🏠", subTypes: [] },
@@ -599,6 +600,20 @@ export default function GeradorProjetosPage() {
               </div>
             )}
 
+            {/* 3D Visualization */}
+            {!isStreaming && streamContent && (
+              <div className="mt-12">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-foreground font-serif mb-2">Visualização 3D Interativa</h3>
+                  <p className="text-sm text-muted-foreground font-sans">
+                    Explore volumetria, plantas baixas, cortes, alçados e estrutura BIM do seu projeto. Use o mouse para rodar, zoom e navegar.
+                  </p>
+                </div>
+                <div className="rounded-lg overflow-hidden border border-border bg-card" style={{ height: '600px' }}>
+                  <Project3DViewerWrapper projectData={formData} />
+                </div>
+              </div>
+            )}
 
             {/* Bottom Actions */}
             {!isStreaming && streamContent && (
@@ -632,21 +647,9 @@ export default function GeradorProjetosPage() {
   }
 
   // FORM VIEW
+  // FORM VIEW
   return (
     <div className="pt-[73px]">
-      {/* Hero */}
-      <section className="relative py-24 bg-[#303030]">
-        <div className="mx-auto max-w-7xl px-6">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#F7A71C] font-sans">Inteligencia Artificial</p>
-          <h1 className="text-4xl font-bold text-[#ffffff] md:text-5xl lg:text-6xl font-serif text-balance">
-            Gerador de Projectos
-          </h1>
-          <p className="mt-4 text-lg text-[#c0c0c0] max-w-2xl font-sans leading-relaxed">
-            Utilize inteligencia artificial para gerar plantas baixas, cortes, alcados, volumetria 3D e estrutura BIM para o seu projecto.
-          </p>
-        </div>
-      </section>
-
       {/* Form */}
       <section className="py-20 bg-background">
         <div className="mx-auto max-w-4xl px-6">
