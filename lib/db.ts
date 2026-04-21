@@ -318,33 +318,96 @@ class Database {
     return updated
   }
 
-  // Telegram Config
+  // Telegram Config - Now using Supabase
   async getTelegramConfig(): Promise<TelegramConfig | null> {
-    // Return the first active config
-    for (const config of this.telegramConfig.values()) {
-      if (config.isActive) return config
+    try {
+      const { createClient } = await import("@supabase/supabase-js")
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+      )
+
+      const { data, error } = await supabase
+        .from("telegram_config")
+        .select("*")
+        .eq("isActive", true)
+        .single()
+
+      if (error) {
+        console.log("[v0] Nenhuma config Telegram ativa encontrada")
+        return null
+      }
+
+      console.log("[v0] Config Telegram recuperada do Supabase")
+      return data as TelegramConfig
+    } catch (error) {
+      console.error("[v0] Erro ao obter config Telegram:", error)
+      return null
     }
-    return null
   }
 
   async createTelegramConfig(config: Omit<TelegramConfig, "id" | "createdAt" | "updatedAt">): Promise<TelegramConfig> {
-    const id = `tg-${Date.now()}`
-    const newConfig: TelegramConfig = {
-      ...config,
-      id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    try {
+      const { createClient } = await import("@supabase/supabase-js")
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+      )
+
+      const { data, error } = await supabase
+        .from("telegram_config")
+        .insert([{
+          botToken: config.botToken,
+          chatId: config.chatId,
+          isActive: config.isActive !== false,
+        }])
+        .select()
+        .single()
+
+      if (error) {
+        console.error("[v0] Erro ao criar config Telegram:", error)
+        throw error
+      }
+
+      console.log("[v0] Config Telegram criada no Supabase")
+      return data as TelegramConfig
+    } catch (error) {
+      console.error("[v0] Exceção ao criar config:", error)
+      throw error
     }
-    this.telegramConfig.set(id, newConfig)
-    return newConfig
   }
 
   async updateTelegramConfig(id: string, updates: Partial<TelegramConfig>): Promise<TelegramConfig | null> {
-    const config = this.telegramConfig.get(id)
-    if (!config) return null
-    const updated = { ...config, ...updates, updatedAt: new Date() }
-    this.telegramConfig.set(id, updated)
-    return updated
+    try {
+      const { createClient } = await import("@supabase/supabase-js")
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+      )
+
+      const updateData: Record<string, any> = {}
+      if (updates.botToken) updateData.botToken = updates.botToken
+      if (updates.chatId) updateData.chatId = updates.chatId
+      if (updates.isActive !== undefined) updateData.isActive = updates.isActive
+
+      const { data, error } = await supabase
+        .from("telegram_config")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error("[v0] Erro ao atualizar config Telegram:", error)
+        return null
+      }
+
+      console.log("[v0] Config Telegram atualizada no Supabase")
+      return data as TelegramConfig
+    } catch (error) {
+      console.error("[v0] Exceção ao atualizar config:", error)
+      return null
+    }
   }
 
   // Logs
