@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { LogOut, Plus, FolderOpen, CreditCard, MessageCircle } from "lucide-react"
+import { LogOut, Plus, FolderOpen, CreditCard, MessageCircle, Zap } from "lucide-react"
 
 export const dynamic = 'force-dynamic'
 
@@ -80,6 +80,14 @@ export default function DashboardPage() {
             <p className="text-muted-foreground mt-2 font-sans">Total: {projects.length} projectos</p>
           </div>
           <div className="flex gap-3">
+            <Button
+              onClick={() => router.push("/admin/ai-config")}
+              variant="outline"
+              className="border-border hover:bg-secondary font-sans"
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              IA Config
+            </Button>
             <Button
               onClick={() => router.push("/admin/telegram-config")}
               variant="outline"
