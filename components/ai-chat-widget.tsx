@@ -5,7 +5,7 @@ import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Send, X, MessageCircle, Loader2 } from 'lucide-react'
+import { Send, X, Loader2 } from 'lucide-react'
 
 interface AIChatWidgetProps {
   isOpen: boolean
@@ -13,77 +13,43 @@ interface AIChatWidgetProps {
 }
 
 export function AIChatWidget({ isOpen, onClose }: AIChatWidgetProps) {
-  const [conversationId, setConversationId] = useState<string>('')
-  const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  
-  let chatHook: any
-  try {
-    chatHook = useChat({
-      transport: new DefaultChatTransport({
-        api: '/api/ai/chat',
-        prepareSendMessagesRequest: ({ messages }) => ({
-          body: {
-            messages,
-            conversationId,
-          },
-        }),
-      }),
-    })
-  } catch (e) {
-    console.error('[v0] Erro ao inicializar chat:', e)
-    setError('Erro ao inicializar chat')
-    chatHook = {
-      messages: [],
-      input: '',
-      handleInputChange: () => {},
-      handleSubmit: () => {},
-      isLoading: false,
-      status: 'error',
-    }
-  }
+  const [conversationId] = useState<string>('')
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading, status } = chatHook
+  // useChat hook MUST be called at top level unconditionally
+  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+    transport: new DefaultChatTransport({
+      api: '/api/ai/chat',
+      prepareSendMessagesRequest: ({ messages }) => ({
+        body: {
+          messages,
+          conversationId,
+        },
+      }),
+    }),
+  })
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
   }, [messages])
-
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    handleSubmit(e)
-  }
 
   if (!isOpen) return null
 
-  if (error) {
-    return (
-      <div className="fixed bottom-20 right-6 w-96 bg-card border border-destructive rounded-lg shadow-2xl flex flex-col z-50 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-foreground">Erro</h3>
-          <Button onClick={onClose} variant="ghost" size="icon" className="h-6 w-6">
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-        <p className="text-sm text-destructive">{error}</p>
-      </div>
-    )
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (input.trim()) {
+      handleSubmit(e)
+    }
   }
 
   return (
-    <div className="fixed bottom-20 right-6 w-96 max-h-[600px] bg-card border border-border rounded-lg shadow-2xl flex flex-col z-50">
+    <div className="fixed bottom-20 right-6 w-96 bg-card border border-border rounded-lg shadow-2xl flex flex-col z-50 h-96">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-background">
-        <div className="flex items-center gap-2">
-          <MessageCircle className="w-5 h-5 text-[#F7A71C]" />
-          <h3 className="font-semibold text-foreground font-serif">Assistente IA</h3>
-        </div>
-        <Button
-          onClick={onClose}
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6"
-        >
+      <div className="flex items-center justify-between p-4 border-b border-border">
+        <h3 className="font-semibold text-foreground">Assistente de IA</h3>
+        <Button onClick={onClose} variant="ghost" size="icon" className="h-6 w-6">
           <X className="w-4 h-4" />
         </Button>
       </div>
@@ -91,11 +57,8 @@ export function AIChatWidget({ isOpen, onClose }: AIChatWidgetProps) {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <MessageCircle className="w-12 h-12 text-muted-foreground/30 mb-2" />
-            <p className="text-sm text-muted-foreground font-sans">
-              Olá! Como posso ajudar com seu projeto?
-            </p>
+          <div className="text-center text-muted-foreground text-sm py-8">
+            <p>Olá! Como posso te ajudar?</p>
           </div>
         )}
         
@@ -119,7 +82,7 @@ export function AIChatWidget({ isOpen, onClose }: AIChatWidgetProps) {
                     message.role === 'user'
                       ? 'bg-[#F7A71C] text-[#303030]'
                       : 'bg-secondary text-foreground'
-                  } font-sans text-sm`}
+                  } font-sans text-sm break-words`}
                 >
                   {messageText || 'Mensagem vazia'}
                 </div>
@@ -134,12 +97,12 @@ export function AIChatWidget({ isOpen, onClose }: AIChatWidgetProps) {
             )
           }
         })}
-
+        
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-secondary text-foreground px-4 py-2 rounded-lg flex items-center gap-2 font-sans text-sm">
+            <div className="bg-secondary text-foreground px-4 py-2 rounded-lg flex items-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin" />
-              Respondendo...
+              <span className="text-sm">Digitando...</span>
             </div>
           </div>
         )}
@@ -148,24 +111,22 @@ export function AIChatWidget({ isOpen, onClose }: AIChatWidgetProps) {
       </div>
 
       {/* Input */}
-      <form onSubmit={onSubmit} className="border-t border-border p-4 bg-background">
-        <div className="flex gap-2">
-          <Input
-            value={input}
-            onChange={handleInputChange}
-            placeholder="Digite sua pergunta..."
-            disabled={isLoading}
-            className="flex-1 bg-card border-border font-sans text-sm"
-          />
-          <Button
-            type="submit"
-            disabled={isLoading || !input.trim()}
-            size="icon"
-            className="bg-[#F7A71C] text-[#303030] hover:bg-[#d99116]"
-          >
-            <Send className="w-4 h-4" />
-          </Button>
-        </div>
+      <form onSubmit={onSubmit} className="border-t border-border p-4 flex gap-2">
+        <Input
+          value={input}
+          onChange={handleInputChange}
+          placeholder="Digite sua mensagem..."
+          disabled={isLoading}
+          className="text-sm"
+        />
+        <Button
+          type="submit"
+          disabled={isLoading || !input.trim()}
+          size="icon"
+          className="bg-[#F7A71C] text-[#303030] hover:bg-[#E09A1A]"
+        >
+          <Send className="w-4 h-4" />
+        </Button>
       </form>
     </div>
   )
