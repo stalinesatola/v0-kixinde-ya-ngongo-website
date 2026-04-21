@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json()
-    console.log('[v0] Dados recebidos:', { botToken: data.botToken ? '***' : null, chatId: data.chatId })
+    console.log('[v0] Dados recebidos:', { botToken: data.botToken ? '***' : null, chatId: data.chatId, isActive: data.isActive })
     
     // Validação básica
     if (!data.botToken || !data.chatId) {
@@ -70,23 +70,43 @@ export async function POST(request: Request) {
       )
     }
     
+    // Garantir que isActive é sempre true por padrão
+    const configData = {
+      botToken: data.botToken,
+      chatId: data.chatId,
+      isActive: true, // SEMPRE true quando se salva
+    }
+    console.log('[v0] Config final a guardar:', { botToken: '***', chatId: configData.chatId, isActive: configData.isActive })
+    
     // Check if config exists
     console.log('[v0] Buscando configuração existente...')
     const existing = await db.getTelegramConfig()
-    console.log('[v0] Config existente:', existing ? 'sim' : 'não')
+    console.log('[v0] Config ativa encontrada:', existing ? 'sim' : 'não')
     
     let config
     if (existing) {
-      console.log('[v0] Atualizando config existente...')
-      config = await db.updateTelegramConfig(existing.id, data)
-      console.log('[v0] Configuração Telegram atualizada:', config)
+      console.log('[v0] Atualizando config existente com ID:', existing.id)
+      config = await db.updateTelegramConfig(existing.id, configData)
+      console.log('[v0] Configuração Telegram atualizada')
     } else {
       console.log('[v0] Criando nova config...')
-      config = await db.createTelegramConfig(data)
-      console.log('[v0] Configuração Telegram criada:', config)
+      config = await db.createTelegramConfig(configData)
+      console.log('[v0] Configuração Telegram criada com ID:', config.id)
     }
     
-    console.log('[v0] Config salva com sucesso')
+    // Verificação final
+    if (!config) {
+      console.error('[v0] Erro crítico: config é null após save')
+      return NextResponse.json(
+        createErrorResponse('Erro ao guardar configuração', 500),
+        { status: 500 }
+      )
+    }
+    
+    console.log('[v0] Config guardada com sucesso. Verificando recuperação...')
+    const retrievedConfig = await db.getTelegramConfig()
+    console.log('[v0] Config recuperada:', retrievedConfig ? 'sim (ativa)' : 'não encontrada')
+    
     return NextResponse.json(createSuccessResponse({ config }))
   } catch (error) {
     console.error('[v0] Exceção no POST:', error)
