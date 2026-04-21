@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from 'next'
 import { Montserrat, Poppins } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Toaster } from 'sonner'
 import './globals.css'
 import { Navbar } from '@/components/navbar'
-import { WhatsAppButton } from '@/components/whatsapp-button'
+import { AIChatButton } from '@/components/ai-chat-button'
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -47,7 +48,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <Navbar />
         <main>{children}</main>
-        <WhatsAppButton />
+        <AIChatButton />
         <Toaster
           position="top-right"
           richColors
@@ -56,6 +57,7 @@ export default function RootLayout({
           theme="dark"
         />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   )

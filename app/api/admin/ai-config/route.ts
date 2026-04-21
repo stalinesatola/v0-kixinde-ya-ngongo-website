@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
-    console.log('[v0] GET /api/admin/telegram-config - iniciando')
+    console.log('[v0] GET /api/admin/ai-config - iniciando')
     const user = await getSessionUser()
     console.log('[v0] User obtido:', user?.id, 'Role:', user?.role)
     
@@ -18,15 +18,15 @@ export async function GET() {
       )
     }
 
-    console.log('[v0] Buscando configuração...')
-    const config = await db.getTelegramConfig()
+    console.log('[v0] Buscando configuração IA...')
+    const config = await db.getAIConfig()
     console.log('[v0] Config encontrada:', config ? 'sim' : 'não')
     return NextResponse.json(createSuccessResponse({ config }))
   } catch (error) {
     console.error('[v0] Exceção no GET:', error)
     const errorId = errorLogger.error(
-      'Erro ao obter configuração Telegram',
-      { endpoint: '/api/admin/telegram-config', method: 'GET' },
+      'Erro ao obter configuração IA',
+      { endpoint: '/api/admin/ai-config', method: 'GET' },
       error instanceof Error ? error : new Error(String(error))
     )
     return NextResponse.json(
@@ -38,60 +38,55 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    console.log('[v0] POST /api/admin/telegram-config - iniciando')
+    console.log('[v0] POST /api/admin/ai-config - iniciando')
     const user = await getSessionUser()
-    console.log('[v0] User obtido:', user?.id, 'Role:', user?.role, 'Email:', user?.email)
+    console.log('[v0] User obtido:', user?.id, 'Role:', user?.role)
     
-    if (!user) {
-      console.log('[v0] Erro: utilizador não autenticado (null)')
+    if (!user || user.role !== 'admin') {
+      console.log('[v0] Acesso negado - não é admin')
       return NextResponse.json(
-        createErrorResponse('Utilizador não autenticado', 401),
-        { status: 401 }
-      )
-    }
-    
-    if (user.role !== 'admin') {
-      console.log('[v0] Erro: utilizador não é admin. Role atual:', user.role)
-      return NextResponse.json(
-        createErrorResponse('Apenas administradores podem fazer isto', 403),
+        createErrorResponse('Não autorizado', 403),
         { status: 403 }
       )
     }
 
     const data = await request.json()
-    console.log('[v0] Dados recebidos:', { botToken: data.botToken ? '***' : null, chatId: data.chatId, isActive: data.isActive })
+    console.log('[v0] Dados recebidos:', { provider: data.provider, model: data.model })
     
     // Validação básica
-    if (!data.botToken || !data.chatId) {
-      console.log('[v0] Erro: botToken ou chatId faltando')
+    if (!data.provider || !data.model) {
+      console.log('[v0] Erro: provider ou model faltando')
       return NextResponse.json(
-        createErrorResponse('Bot Token e Chat ID são obrigatórios', 400),
+        createErrorResponse('Provider e Model são obrigatórios', 400),
         { status: 400 }
       )
     }
-    
-    // Garantir que isActive é sempre true por padrão
+
     const configData = {
-      botToken: data.botToken,
-      chatId: data.chatId,
-      isActive: true, // SEMPRE true quando se salva
+      provider: data.provider,
+      model: data.model,
+      api_key_encrypted: data.apiKey || '', // Será encriptado
+      system_prompt: data.systemPrompt,
+      is_active: true,
+      temperature: data.temperature || 0.7,
+      max_tokens: data.maxTokens || 1000,
     }
-    console.log('[v0] Config final a guardar:', { botToken: '***', chatId: configData.chatId, isActive: configData.isActive })
+    console.log('[v0] Config final a guardar:', { provider: configData.provider, model: configData.model })
     
     // Check if config exists
     console.log('[v0] Buscando configuração existente...')
-    const existing = await db.getTelegramConfig()
+    const existing = await db.getAIConfig()
     console.log('[v0] Config ativa encontrada:', existing ? 'sim' : 'não')
     
     let config
     if (existing) {
       console.log('[v0] Atualizando config existente com ID:', existing.id)
-      config = await db.updateTelegramConfig(existing.id, configData)
-      console.log('[v0] Configuração Telegram atualizada')
+      config = await db.updateAIConfig(existing.id, configData)
+      console.log('[v0] Configuração IA atualizada')
     } else {
-      console.log('[v0] Criando nova config...')
-      config = await db.createTelegramConfig(configData)
-      console.log('[v0] Configuração Telegram criada com ID:', config.id)
+      console.log('[v0] Criando nova config IA...')
+      config = await db.createAIConfig(configData)
+      console.log('[v0] Configuração IA criada com ID:', config.id)
     }
     
     // Verificação final
@@ -103,16 +98,13 @@ export async function POST(request: Request) {
       )
     }
     
-    console.log('[v0] Config guardada com sucesso. Verificando recuperação...')
-    const retrievedConfig = await db.getTelegramConfig()
-    console.log('[v0] Config recuperada:', retrievedConfig ? 'sim (ativa)' : 'não encontrada')
-    
+    console.log('[v0] Config guardada com sucesso')
     return NextResponse.json(createSuccessResponse({ config }))
   } catch (error) {
     console.error('[v0] Exceção no POST:', error)
     const errorId = errorLogger.error(
-      'Erro ao salvar configuração Telegram',
-      { endpoint: '/api/admin/telegram-config', method: 'POST' },
+      'Erro ao salvar configuração IA',
+      { endpoint: '/api/admin/ai-config', method: 'POST' },
       error instanceof Error ? error : new Error(String(error))
     )
     return NextResponse.json(
