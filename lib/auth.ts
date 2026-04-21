@@ -28,11 +28,8 @@ export async function loginUser(email: string, password: string) {
     return null
   }
 
-  console.log("[v0] loginUser - comparando senha diretamente")
-  console.log("[v0] input:", password, "stored:", user.password)
-  
-  // Comparação direta de texto plano - a senha está armazenada como texto no DB
-  const isPasswordValid = password.trim() === (user.password || "").trim()
+  console.log("[v0] loginUser - comparando senha com SHA256")
+  const isPasswordValid = db.comparePassword(password, user.password)
   console.log("[v0] loginUser - senha válida:", isPasswordValid)
   
   if (!isPasswordValid) {

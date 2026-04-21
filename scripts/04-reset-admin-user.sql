@@ -2,8 +2,8 @@
 -- Password: demo123
 -- SHA256 hash: 6b86b273f403ebf3e5d99cc20d6b1baac0fa57a3b3a05ad27f69be1b54f2db85
 
--- Delete existing admin users
-DELETE FROM public.users WHERE email IN ('admin@kixinde.com', 'admin@example.com', 'admin-001');
+-- Delete any existing admin with this email to avoid conflicts
+DELETE FROM public.users WHERE email = 'admin@kixinde.com';
 
 -- Insert new admin user with hashed password
 INSERT INTO public.users (
@@ -15,7 +15,7 @@ INSERT INTO public.users (
   created_at,
   updated_at
 ) VALUES (
-  'admin-001',
+  'admin-' || TO_CHAR(NOW(), 'YYYYMMDDHHmmss'),
   'admin@kixinde.com',
   'Admin Kixinde',
   '6b86b273f403ebf3e5d99cc20d6b1baac0fa57a3b3a05ad27f69be1b54f2db85',
@@ -25,4 +25,4 @@ INSERT INTO public.users (
 );
 
 -- Verify insertion
-SELECT id, email, name, role, created_at FROM public.users WHERE role = 'admin';
+SELECT id, email, name, role, created_at FROM public.users WHERE role = 'admin' ORDER BY created_at DESC LIMIT 1;
