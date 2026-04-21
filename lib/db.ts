@@ -882,5 +882,4 @@ class Database {
 }
 
 // Export singleton instance
-// Database singleton for managing all data operations
-export const db = new Database();
+export const db = new Database()
