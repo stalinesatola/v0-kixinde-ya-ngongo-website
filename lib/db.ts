@@ -701,7 +701,184 @@ class Database {
   comparePassword(password: string, hash: string): boolean {
     return this.hashPassword(password) === hash
   }
-}
+
+  // AI Config - Using Supabase
+  async getAIConfig(): Promise<any | null> {
+    try {
+      const { createClient } = await import("@supabase/supabase-js")
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+      )
+
+      const { data, error } = await supabase
+        .from("ai_config")
+        .select("*")
+        .eq("is_active", true)
+        .single()
+
+      if (error) {
+        console.log("[v0] Nenhuma config IA ativa encontrada")
+        return null
+      }
+
+      console.log("[v0] Config IA recuperada do Supabase")
+      return data
+    } catch (error) {
+      console.error("[v0] Erro ao obter config IA:", error)
+      return null
+    }
+  }
+
+  async createAIConfig(config: any): Promise<any> {
+    try {
+      const { createClient } = await import("@supabase/supabase-js")
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+      )
+
+      const { data, error } = await supabase
+        .from("ai_config")
+        .insert([config])
+        .select()
+        .single()
+
+      if (error) {
+        console.error("[v0] Erro ao criar config IA:", error)
+        throw error
+      }
+
+      console.log("[v0] Config IA criada no Supabase")
+      return data
+    } catch (error) {
+      console.error("[v0] Exceção ao criar config IA:", error)
+      throw error
+    }
+  }
+
+  async updateAIConfig(id: string, updates: any): Promise<any | null> {
+    try {
+      const { createClient } = await import("@supabase/supabase-js")
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+      )
+
+      const { data, error } = await supabase
+        .from("ai_config")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error("[v0] Erro ao atualizar config IA:", error)
+        return null
+      }
+
+      console.log("[v0] Config IA atualizada no Supabase")
+      return data
+    } catch (error) {
+      console.log("[v0] Exceção ao atualizar config IA:", error)
+      return null
+    }
+  }
+
+  // AI Conversations
+  async createConversation(userId: string, data: any): Promise<any> {
+    try {
+      const { createClient } = await import("@supabase/supabase-js")
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+      )
+
+      const { data: conv, error } = await supabase
+        .from("ai_conversations")
+        .insert([{
+          user_id: userId,
+          title: data.title || 'New Conversation',
+          is_archived: false,
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      console.log("[v0] Conversa criada:", conv.id)
+      return conv
+    } catch (error) {
+      console.error("[v0] Erro ao criar conversa:", error)
+      throw error
+    }
+  }
+
+  async getConversations(userId: string): Promise<any[]> {
+    try {
+      const { createClient } = await import("@supabase/supabase-js")
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+      )
+
+      const { data, error } = await supabase
+        .from("ai_conversations")
+        .select("*")
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false })
+
+      if (error) throw error
+      return data || []
+    } catch (error) {
+      console.error("[v0] Erro ao obter conversas:", error)
+      return []
+    }
+  }
+
+  // AI Messages
+  async createMessage(data: any): Promise<any> {
+    try {
+      const { createClient } = await import("@supabase/supabase-js")
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+      )
+
+      const { data: msg, error } = await supabase
+        .from("ai_messages")
+        .insert([data])
+        .select()
+        .single()
+
+      if (error) throw error
+      return msg
+    } catch (error) {
+      console.error("[v0] Erro ao criar mensagem:", error)
+      throw error
+    }
+  }
+
+  async getMessages(conversationId: string): Promise<any[]> {
+    try {
+      const { createClient } = await import("@supabase/supabase-js")
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+      )
+
+      const { data, error } = await supabase
+        .from("ai_messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: true })
+
+      if (error) throw error
+      return data || []
+    } catch (error) {
+      console.error("[v0] Erro ao obter mensagens:", error)
+      return []
+    }
+  }
 
 // Export singleton instance
 export const db = new Database()

@@ -4,7 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
 import './globals.css'
 import { Navbar } from '@/components/navbar'
-import { WhatsAppButton } from '@/components/whatsapp-button'
+import { AIChatButton } from '@/components/ai-chat-button'
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -47,7 +47,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <Navbar />
         <main>{children}</main>
-        <WhatsAppButton />
+        <AIChatButton />
         <Toaster
           position="top-right"
           richColors
