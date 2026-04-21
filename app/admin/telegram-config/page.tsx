@@ -80,8 +80,8 @@ export default function TelegramSettingsPage() {
         })
         setTimeout(() => setMessage({ type: null, text: '' }), 3000)
       } else {
-        const errorText = responseData.error || 'Erro desconhecido'
-        const errorId = responseData.errorId || ''
+        const errorText = responseData.error?.message || 'Erro desconhecido'
+        const errorId = responseData.error?.id || ''
         console.log('[v0] Erro ao salvar:', errorText, 'ID:', errorId)
         setMessage({
           type: 'error',
@@ -104,7 +104,7 @@ export default function TelegramSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-[73px]">
       <div className="mx-auto max-w-2xl px-6 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -253,9 +253,11 @@ export default function TelegramSettingsPage() {
                   })
                   setTimeout(() => setMessage({ type: null, text: '' }), 3000)
                 } else {
+                  const errorText = data.error?.message || 'Erro desconhecido'
+                  const errorId = data.error?.id || ''
                   setMessage({
                     type: 'error',
-                    text: `Erro ao enviar teste: ${data.error || 'Erro desconhecido'}`,
+                    text: `Erro ao enviar teste: ${errorText}${errorId ? ` (ID: ${errorId})` : ''}`,
                   })
                 }
               } catch (error) {
