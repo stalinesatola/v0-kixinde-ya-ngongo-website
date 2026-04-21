@@ -707,6 +707,13 @@ class Database {
   }
 
   comparePassword(password: string, hash: string): boolean {
+    // If hash is already a plain text password (no hash prefix), compare directly
+    // This handles both hashed and plain text passwords stored in DB
+    if (!hash.startsWith('$') && hash.length < 64) {
+      // Plain text password stored in DB
+      return password === hash
+    }
+    // Otherwise try hash comparison (SHA256 = 64 chars hex)
     return this.hashPassword(password) === hash
   }
 
