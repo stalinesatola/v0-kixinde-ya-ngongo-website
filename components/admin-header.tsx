@@ -60,8 +60,7 @@ export function AdminHeader({ title, userName, showHome = true }: AdminHeaderPro
         <Button
           onClick={handleLogout}
           disabled={isLoggingOut}
-          variant="outline"
-          className="border-border font-sans gap-2"
+          className="bg-black text-white hover:bg-gray-800 font-sans gap-2"
         >
           <LogOut className="w-4 h-4" />
           {isLoggingOut ? 'Saindo...' : 'Sair'}
