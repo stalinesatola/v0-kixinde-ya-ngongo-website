@@ -28,20 +28,29 @@ export default function TelegramSettingsPage() {
   }, [])
 
   const fetchConfig = async () => {
+    console.log('[v0] Carregando configuração Telegram...')
     try {
       const response = await fetch('/api/admin/telegram-config')
+      console.log('[v0] Resposta fetchConfig:', response.status, response.statusText)
+      
       if (response.ok) {
         const data = await response.json()
-        if (data.config) {
+        console.log('[v0] Config carregada:', data)
+        if (data.data?.config) {
           setFormData({
-            botToken: data.config.botToken,
-            chatId: data.config.chatId,
-            isActive: data.config.isActive,
+            botToken: data.data.config.botToken || '',
+            chatId: data.data.config.chatId || '',
+            isActive: data.data.config.isActive !== false,
           })
+          console.log('[v0] FormData atualizado')
+        } else {
+          console.log('[v0] Nenhuma config encontrada - usando defaults')
         }
+      } else {
+        console.error('[v0] Erro ao carregar config:', response.statusText)
       }
     } catch (error) {
-      console.error('[v0] Erro ao carregar config:', error)
+      console.error('[v0] Exceção ao carregar config:', error)
     } finally {
       setLoading(false)
     }
@@ -50,6 +59,7 @@ export default function TelegramSettingsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
+    console.log('[v0] Iniciando gravação de configuração:', formData)
 
     try {
       const response = await fetch('/api/admin/telegram-config', {
@@ -58,23 +68,31 @@ export default function TelegramSettingsPage() {
         body: JSON.stringify(formData),
       })
 
+      console.log('[v0] Resposta da API:', response.status, response.statusText)
+      const responseData = await response.json()
+      console.log('[v0] Dados de resposta:', responseData)
+
       if (response.ok) {
+        console.log('[v0] Configuração guardada com sucesso')
         setMessage({
           type: 'success',
           text: 'Configuração Telegram salva com sucesso!',
         })
         setTimeout(() => setMessage({ type: null, text: '' }), 3000)
       } else {
+        const errorText = responseData.error || 'Erro desconhecido'
+        const errorId = responseData.errorId || ''
+        console.log('[v0] Erro ao salvar:', errorText, 'ID:', errorId)
         setMessage({
           type: 'error',
-          text: 'Erro ao salvar configuração',
+          text: `Erro ao salvar configuração: ${errorText}${errorId ? ` (ID: ${errorId})` : ''}`,
         })
       }
     } catch (error) {
-      console.error('[v0] Erro ao salvar:', error)
+      console.error('[v0] Exceção ao salvar:', error)
       setMessage({
         type: 'error',
-        text: 'Erro ao salvar configuração',
+        text: `Erro ao salvar configuração: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
       })
     } finally {
       setSaving(false)
@@ -219,21 +237,32 @@ export default function TelegramSettingsPage() {
           </p>
           <Button
             onClick={async () => {
+              console.log('[v0] Enviando mensagem de teste...')
               try {
                 const response = await fetch('/api/admin/telegram-test', {
                   method: 'POST',
                 })
+                console.log('[v0] Resposta teste:', response.status)
+                const data = await response.json()
+                console.log('[v0] Dados teste:', data)
+                
                 if (response.ok) {
                   setMessage({
                     type: 'success',
-                    text: 'Mensagem de teste enviada!',
+                    text: 'Mensagem de teste enviada com sucesso!',
                   })
                   setTimeout(() => setMessage({ type: null, text: '' }), 3000)
+                } else {
+                  setMessage({
+                    type: 'error',
+                    text: `Erro ao enviar teste: ${data.error || 'Erro desconhecido'}`,
+                  })
                 }
               } catch (error) {
+                console.error('[v0] Exceção ao enviar teste:', error)
                 setMessage({
                   type: 'error',
-                  text: 'Erro ao enviar mensagem de teste',
+                  text: `Erro ao enviar teste: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
                 })
               }
             }}
