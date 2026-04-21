@@ -1,332 +1,526 @@
 import { User, Project, Subscription, ProjectLog, Session, SubscriptionPlan, PaymentMethod, UserSubscription, PaymentTransaction, TelegramConfig } from "./types"
 import crypto from "crypto"
 
-// In-memory database for MVP
+// Supabase Database Layer
 class Database {
-  private users: Map<string, User> = new Map()
-  private projects: Map<string, Project> = new Map()
-  private subscriptions: Map<string, Subscription> = new Map()
-  private subscriptionPlans: Map<string, SubscriptionPlan> = new Map()
-  private paymentMethods: Map<string, PaymentMethod> = new Map()
-  private userSubscriptions: Map<string, UserSubscription> = new Map()
-  private paymentTransactions: Map<string, PaymentTransaction> = new Map()
-  private telegramConfig: Map<string, TelegramConfig> = new Map()
-  private logs: ProjectLog[] = []
-  private sessions: Map<string, Session> = new Map()
-
-  // Initialize with demo data
-  constructor() {
-    this.initializeDemoData()
-  }
-
-  private initializeDemoData() {
-    // Create demo admin user
-    const adminUser: User = {
-      id: "admin-001",
-      email: "admin@kixindeyangongo.ao",
-      password: this.hashPassword("demo123"), // In production, use proper hashing
-      name: "Admin KIXINDE",
-      role: "admin",
-      company: "KIXINDE YA NGONGO",
-      phone: "+244 926 899 866",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-    this.users.set(adminUser.id, adminUser)
-
-    // Create demo subscription plans
-    const freePlan: SubscriptionPlan = {
-      id: "plan-free",
-      name: "Free",
-      description: "Para experimentar",
-      price: 0,
-      currency: "AOA",
-      billingPeriod: "monthly",
-      projectsLimit: 3,
-      features: ["3 projectos por mês", "Suporte por email"],
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-    this.subscriptionPlans.set(freePlan.id, freePlan)
-
-    const professionalPlan: SubscriptionPlan = {
-      id: "plan-pro",
-      name: "Professional",
-      description: "Para profissionais",
-      price: 9900, // 99.00
-      currency: "AOA",
-      billingPeriod: "monthly",
-      projectsLimit: 50,
-      features: ["50 projectos por mês", "Suporte prioritário", "Exportar PDF"],
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-    this.subscriptionPlans.set(professionalPlan.id, professionalPlan)
-
-    const enterprisePlan: SubscriptionPlan = {
-      id: "plan-enterprise",
-      name: "Enterprise",
-      description: "Para empresas",
-      price: 29900, // 299.00
-      currency: "AOA",
-      billingPeriod: "monthly",
-      projectsLimit: 999,
-      features: ["Projectos ilimitados", "Suporte 24/7", "API access", "Custom branding"],
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-    this.subscriptionPlans.set(enterprisePlan.id, enterprisePlan)
-
-    // Create admin subscription
-    const adminSubscription: UserSubscription = {
-      id: "user-sub-001",
-      userId: "admin-001",
-      planId: "plan-enterprise",
-      status: "active",
-      startDate: new Date(),
-      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
-      autoRenew: true,
-      projectsUsed: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-    this.userSubscriptions.set(adminSubscription.id, adminSubscription)
-
-    // Create demo subscription for backward compatibility
-    const adminSubscription2: Subscription = {
-      id: "sub-001",
-      userId: "admin-001",
-      plan: "enterprise",
-      status: "active",
-      projectsLimit: 999,
-      projectsUsed: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-    this.subscriptions.set(adminSubscription2.id, adminSubscription2)
+  private getSupabase() {
+    const { createClient } = require("@supabase/supabase-js")
+    return createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+      process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+    )
   }
 
   // Users
   async getUser(id: string): Promise<User | null> {
-    return this.users.get(id) || null
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", id)
+        .single()
+
+      if (error) return null
+      return data as User
+    } catch (error) {
+      console.error("[v0] Erro ao obter utilizador:", error)
+      return null
+    }
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
-    for (const user of this.users.values()) {
-      if (user.email === email) return user
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("email", email)
+        .single()
+
+      if (error) return null
+      return data as User
+    } catch (error) {
+      console.error("[v0] Erro ao obter utilizador por email:", error)
+      return null
     }
-    return null
   }
 
   async createUser(user: Omit<User, "id" | "createdAt" | "updatedAt">): Promise<User> {
-    const id = `user-${Date.now()}`
-    const newUser: User = {
-      ...user,
-      id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    try {
+      const supabase = this.getSupabase()
+      const id = `user-${Date.now()}`
+      
+      const { data, error } = await supabase
+        .from("users")
+        .insert([{
+          id,
+          ...user,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as User
+    } catch (error) {
+      console.error("[v0] Erro ao criar utilizador:", error)
+      throw error
     }
-    this.users.set(id, newUser)
-    return newUser
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User | null> {
-    const user = this.users.get(id)
-    if (!user) return null
-    const updated = { ...user, ...updates, updatedAt: new Date() }
-    this.users.set(id, updated)
-    return updated
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("users")
+        .update({
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single()
+
+      if (error) return null
+      return data as User
+    } catch (error) {
+      console.error("[v0] Erro ao atualizar utilizador:", error)
+      return null
+    }
   }
 
   async getAllUsers(): Promise<User[]> {
-    return Array.from(this.users.values())
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase.from("users").select("*")
+
+      if (error) return []
+      return data as User[]
+    } catch (error) {
+      console.error("[v0] Erro ao obter utilizadores:", error)
+      return []
+    }
   }
 
   // Projects
   async createProject(project: Omit<Project, "id" | "createdAt" | "updatedAt">): Promise<Project> {
-    const id = `proj-${Date.now()}`
-    const newProject: Project = {
-      ...project,
-      id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    try {
+      const supabase = this.getSupabase()
+      const id = `proj-${Date.now()}`
+
+      const { data, error } = await supabase
+        .from("projects")
+        .insert([{
+          id,
+          ...project,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // Log creation
+      await this.addLog({
+        userId: project.userId,
+        projectId: id,
+        action: "created",
+        details: `Projecto criado: ${project.projectName}`,
+      })
+
+      return data as Project
+    } catch (error) {
+      console.error("[v0] Erro ao criar projecto:", error)
+      throw error
     }
-    this.projects.set(id, newProject)
-
-    // Log creation
-    this.logs.push({
-      id: `log-${Date.now()}`,
-      userId: project.userId,
-      projectId: id,
-      action: "created",
-      details: `Projecto criado: ${project.projectName}`,
-      timestamp: new Date(),
-    })
-
-    return newProject
   }
 
   async getProject(id: string): Promise<Project | null> {
-    return this.projects.get(id) || null
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("id", id)
+        .single()
+
+      if (error) return null
+      return data as Project
+    } catch (error) {
+      console.error("[v0] Erro ao obter projecto:", error)
+      return null
+    }
   }
 
   async getUserProjects(userId: string): Promise<Project[]> {
-    return Array.from(this.projects.values()).filter((p) => p.userId === userId)
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("userId", userId)
+
+      if (error) return []
+      return data as Project[]
+    } catch (error) {
+      console.error("[v0] Erro ao obter projectos do utilizador:", error)
+      return []
+    }
   }
 
   async updateProject(id: string, updates: Partial<Project>): Promise<Project | null> {
-    const project = this.projects.get(id)
-    if (!project) return null
-    const updated = { ...project, ...updates, updatedAt: new Date() }
-    this.projects.set(id, updated)
-    return updated
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("projects")
+        .update({
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single()
+
+      if (error) return null
+      return data as Project
+    } catch (error) {
+      console.error("[v0] Erro ao atualizar projecto:", error)
+      return null
+    }
   }
 
   async deleteProject(id: string): Promise<boolean> {
-    return this.projects.delete(id)
+    try {
+      const supabase = this.getSupabase()
+      const { error } = await supabase.from("projects").delete().eq("id", id)
+
+      if (error) return false
+      return true
+    } catch (error) {
+      console.error("[v0] Erro ao eliminar projecto:", error)
+      return false
+    }
   }
 
   // Subscriptions
   async getSubscription(userId: string): Promise<Subscription | null> {
-    for (const sub of this.subscriptions.values()) {
-      if (sub.userId === userId) return sub
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("userId", userId)
+        .single()
+
+      if (error) return null
+      return data as Subscription
+    } catch (error) {
+      console.error("[v0] Erro ao obter subscrição:", error)
+      return null
     }
-    return null
   }
 
   async createSubscription(subscription: Omit<Subscription, "id" | "createdAt" | "updatedAt">): Promise<Subscription> {
-    const id = `sub-${Date.now()}`
-    const newSubscription: Subscription = {
-      ...subscription,
-      id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    try {
+      const supabase = this.getSupabase()
+      const id = `sub-${Date.now()}`
+
+      const { data, error } = await supabase
+        .from("subscriptions")
+        .insert([{
+          id,
+          ...subscription,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as Subscription
+    } catch (error) {
+      console.error("[v0] Erro ao criar subscrição:", error)
+      throw error
     }
-    this.subscriptions.set(id, newSubscription)
-    return newSubscription
   }
 
   // Subscription Plans
   async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
-    return Array.from(this.subscriptionPlans.values())
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("subscription_plans")
+        .select("*")
+        .eq("isActive", true)
+
+      if (error) return []
+      return data as SubscriptionPlan[]
+    } catch (error) {
+      console.error("[v0] Erro ao obter planos:", error)
+      return []
+    }
   }
 
   async getSubscriptionPlan(id: string): Promise<SubscriptionPlan | null> {
-    return this.subscriptionPlans.get(id) || null
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("subscription_plans")
+        .select("*")
+        .eq("id", id)
+        .single()
+
+      if (error) return null
+      return data as SubscriptionPlan
+    } catch (error) {
+      console.error("[v0] Erro ao obter plano:", error)
+      return null
+    }
   }
 
   async createSubscriptionPlan(plan: Omit<SubscriptionPlan, "id" | "createdAt" | "updatedAt">): Promise<SubscriptionPlan> {
-    const id = `plan-${Date.now()}`
-    const newPlan: SubscriptionPlan = {
-      ...plan,
-      id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    try {
+      const supabase = this.getSupabase()
+      const id = `plan-${Date.now()}`
+
+      const { data, error } = await supabase
+        .from("subscription_plans")
+        .insert([{
+          id,
+          ...plan,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as SubscriptionPlan
+    } catch (error) {
+      console.error("[v0] Erro ao criar plano:", error)
+      throw error
     }
-    this.subscriptionPlans.set(id, newPlan)
-    return newPlan
   }
 
   async updateSubscriptionPlan(id: string, updates: Partial<SubscriptionPlan>): Promise<SubscriptionPlan | null> {
-    const plan = this.subscriptionPlans.get(id)
-    if (!plan) return null
-    const updated = { ...plan, ...updates, updatedAt: new Date() }
-    this.subscriptionPlans.set(id, updated)
-    return updated
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("subscription_plans")
+        .update({
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single()
+
+      if (error) return null
+      return data as SubscriptionPlan
+    } catch (error) {
+      console.error("[v0] Erro ao atualizar plano:", error)
+      return null
+    }
   }
 
   // User Subscriptions
   async getUserSubscription(userId: string): Promise<UserSubscription | null> {
-    for (const sub of this.userSubscriptions.values()) {
-      if (sub.userId === userId && sub.status === "active") {
-        if (new Date() > sub.expiresAt) {
-          sub.status = "expired"
-          continue
-        }
-        return sub
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("user_subscriptions")
+        .select("*")
+        .eq("userId", userId)
+        .eq("status", "active")
+        .single()
+
+      if (error) return null
+
+      // Verificar se não expirou
+      if (new Date() > new Date(data.expiresAt)) {
+        await this.updateUserSubscription(data.id, { status: "expired" })
+        return null
       }
+
+      return data as UserSubscription
+    } catch (error) {
+      console.error("[v0] Erro ao obter subscrição do utilizador:", error)
+      return null
     }
-    return null
   }
 
   async createUserSubscription(subscription: Omit<UserSubscription, "id" | "createdAt" | "updatedAt">): Promise<UserSubscription> {
-    const id = `usub-${Date.now()}`
-    const newSubscription: UserSubscription = {
-      ...subscription,
-      id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    try {
+      const supabase = this.getSupabase()
+      const id = `usub-${Date.now()}`
+
+      const { data, error } = await supabase
+        .from("user_subscriptions")
+        .insert([{
+          id,
+          ...subscription,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as UserSubscription
+    } catch (error) {
+      console.error("[v0] Erro ao criar subscrição do utilizador:", error)
+      throw error
     }
-    this.userSubscriptions.set(id, newSubscription)
-    return newSubscription
   }
 
   async updateUserSubscription(id: string, updates: Partial<UserSubscription>): Promise<UserSubscription | null> {
-    const sub = this.userSubscriptions.get(id)
-    if (!sub) return null
-    const updated = { ...sub, ...updates, updatedAt: new Date() }
-    this.userSubscriptions.set(id, updated)
-    return updated
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("user_subscriptions")
+        .update({
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single()
+
+      if (error) return null
+      return data as UserSubscription
+    } catch (error) {
+      console.error("[v0] Erro ao atualizar subscrição do utilizador:", error)
+      return null
+    }
   }
 
   // Payment Methods
   async getPaymentMethods(): Promise<PaymentMethod[]> {
-    return Array.from(this.paymentMethods.values()).filter(m => m.isActive)
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("payment_methods")
+        .select("*")
+        .eq("isActive", true)
+
+      if (error) return []
+      return data as PaymentMethod[]
+    } catch (error) {
+      console.error("[v0] Erro ao obter métodos de pagamento:", error)
+      return []
+    }
   }
 
   async getPaymentMethod(id: string): Promise<PaymentMethod | null> {
-    return this.paymentMethods.get(id) || null
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("payment_methods")
+        .select("*")
+        .eq("id", id)
+        .single()
+
+      if (error) return null
+      return data as PaymentMethod
+    } catch (error) {
+      console.error("[v0] Erro ao obter método de pagamento:", error)
+      return null
+    }
   }
 
   async createPaymentMethod(method: Omit<PaymentMethod, "id" | "createdAt" | "updatedAt">): Promise<PaymentMethod> {
-    const id = `pm-${Date.now()}`
-    const newMethod: PaymentMethod = {
-      ...method,
-      id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    try {
+      const supabase = this.getSupabase()
+      const id = `pm-${Date.now()}`
+
+      const { data, error } = await supabase
+        .from("payment_methods")
+        .insert([{
+          id,
+          ...method,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as PaymentMethod
+    } catch (error) {
+      console.error("[v0] Erro ao criar método de pagamento:", error)
+      throw error
     }
-    this.paymentMethods.set(id, newMethod)
-    return newMethod
   }
 
   // Payment Transactions
   async createPaymentTransaction(transaction: Omit<PaymentTransaction, "id" | "createdAt" | "updatedAt">): Promise<PaymentTransaction> {
-    const id = `trans-${Date.now()}`
-    const newTransaction: PaymentTransaction = {
-      ...transaction,
-      id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    try {
+      const supabase = this.getSupabase()
+      const id = `trans-${Date.now()}`
+
+      const { data, error } = await supabase
+        .from("payment_transactions")
+        .insert([{
+          id,
+          ...transaction,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as PaymentTransaction
+    } catch (error) {
+      console.error("[v0] Erro ao criar transação de pagamento:", error)
+      throw error
     }
-    this.paymentTransactions.set(id, newTransaction)
-    return newTransaction
   }
 
   async getPaymentTransactions(userId: string): Promise<PaymentTransaction[]> {
-    return Array.from(this.paymentTransactions.values()).filter(t => t.userId === userId)
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("payment_transactions")
+        .select("*")
+        .eq("userId", userId)
+
+      if (error) return []
+      return data as PaymentTransaction[]
+    } catch (error) {
+      console.error("[v0] Erro ao obter transações de pagamento:", error)
+      return []
+    }
   }
 
   async updatePaymentTransaction(id: string, updates: Partial<PaymentTransaction>): Promise<PaymentTransaction | null> {
-    const trans = this.paymentTransactions.get(id)
-    if (!trans) return null
-    const updated = { ...trans, ...updates, updatedAt: new Date() }
-    this.paymentTransactions.set(id, updated)
-    return updated
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("payment_transactions")
+        .update({
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single()
+
+      if (error) return null
+      return data as PaymentTransaction
+    } catch (error) {
+      console.error("[v0] Erro ao atualizar transação de pagamento:", error)
+      return null
+    }
   }
 
-  // Telegram Config - Now using Supabase
+  // Telegram Config
   async getTelegramConfig(): Promise<TelegramConfig | null> {
     try {
-      const { createClient } = await import("@supabase/supabase-js")
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-      )
-
+      const supabase = this.getSupabase()
       const { data, error } = await supabase
         .from("telegram_config")
         .select("*")
@@ -338,7 +532,6 @@ class Database {
         return null
       }
 
-      console.log("[v0] Config Telegram recuperada do Supabase")
       return data as TelegramConfig
     } catch (error) {
       console.error("[v0] Erro ao obter config Telegram:", error)
@@ -348,118 +541,160 @@ class Database {
 
   async createTelegramConfig(config: Omit<TelegramConfig, "id" | "createdAt" | "updatedAt">): Promise<TelegramConfig> {
     try {
-      const { createClient } = await import("@supabase/supabase-js")
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-      )
+      const supabase = this.getSupabase()
+      const id = `tg-${Date.now()}`
 
       const { data, error } = await supabase
         .from("telegram_config")
         .insert([{
-          botToken: config.botToken,
-          chatId: config.chatId,
-          isActive: config.isActive !== false,
+          id,
+          ...config,
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         }])
         .select()
         .single()
 
-      if (error) {
-        console.error("[v0] Erro ao criar config Telegram:", error)
-        throw error
-      }
-
-      console.log("[v0] Config Telegram criada no Supabase")
+      if (error) throw error
       return data as TelegramConfig
     } catch (error) {
-      console.error("[v0] Exceção ao criar config:", error)
+      console.error("[v0] Erro ao criar config Telegram:", error)
       throw error
     }
   }
 
   async updateTelegramConfig(id: string, updates: Partial<TelegramConfig>): Promise<TelegramConfig | null> {
     try {
-      const { createClient } = await import("@supabase/supabase-js")
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-      )
-
-      const updateData: Record<string, any> = {}
-      if (updates.botToken) updateData.botToken = updates.botToken
-      if (updates.chatId) updateData.chatId = updates.chatId
-      if (updates.isActive !== undefined) updateData.isActive = updates.isActive
-
+      const supabase = this.getSupabase()
       const { data, error } = await supabase
         .from("telegram_config")
-        .update(updateData)
+        .update({
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        })
         .eq("id", id)
         .select()
         .single()
 
-      if (error) {
-        console.error("[v0] Erro ao atualizar config Telegram:", error)
-        return null
-      }
-
-      console.log("[v0] Config Telegram atualizada no Supabase")
+      if (error) return null
       return data as TelegramConfig
     } catch (error) {
-      console.error("[v0] Exceção ao atualizar config:", error)
+      console.error("[v0] Erro ao atualizar config Telegram:", error)
       return null
     }
   }
 
   // Logs
   async getLogs(userId?: string): Promise<ProjectLog[]> {
-    if (userId) {
-      return this.logs.filter((log) => log.userId === userId)
+    try {
+      const supabase = this.getSupabase()
+      let query = supabase.from("project_logs").select("*")
+
+      if (userId) {
+        query = query.eq("userId", userId)
+      }
+
+      const { data, error } = await query
+
+      if (error) return []
+      return data as ProjectLog[]
+    } catch (error) {
+      console.error("[v0] Erro ao obter logs:", error)
+      return []
     }
-    return this.logs
   }
 
   async addLog(log: Omit<ProjectLog, "id" | "timestamp">): Promise<ProjectLog> {
-    const newLog: ProjectLog = {
-      ...log,
-      id: `log-${Date.now()}`,
-      timestamp: new Date(),
+    try {
+      const supabase = this.getSupabase()
+      const id = `log-${Date.now()}`
+
+      const { data, error } = await supabase
+        .from("project_logs")
+        .insert([{
+          id,
+          ...log,
+          timestamp: new Date().toISOString(),
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as ProjectLog
+    } catch (error) {
+      console.error("[v0] Erro ao adicionar log:", error)
+      throw error
     }
-    this.logs.push(newLog)
-    return newLog
   }
 
   // Sessions
   async createSession(userId: string): Promise<Session> {
-    const id = `sess-${Date.now()}`
-    const token = crypto.randomBytes(32).toString("hex")
-    const session: Session = {
-      id,
-      userId,
-      token,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      createdAt: new Date(),
+    try {
+      const supabase = this.getSupabase()
+      const id = `sess-${Date.now()}`
+      const token = crypto.randomBytes(32).toString("hex")
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+
+      const { data, error } = await supabase
+        .from("sessions")
+        .insert([{
+          id,
+          userId,
+          token,
+          expiresAt: expiresAt.toISOString(),
+          createdAt: new Date().toISOString(),
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as Session
+    } catch (error) {
+      console.error("[v0] Erro ao criar sessão:", error)
+      throw error
     }
-    this.sessions.set(token, session)
-    return session
   }
 
   async getSession(token: string): Promise<Session | null> {
-    const session = this.sessions.get(token)
-    if (!session) return null
-    if (new Date() > session.expiresAt) {
-      this.sessions.delete(token)
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("sessions")
+        .select("*")
+        .eq("token", token)
+        .single()
+
+      if (error) return null
+
+      // Verificar se não expirou
+      if (new Date() > new Date(data.expiresAt)) {
+        await supabase.from("sessions").delete().eq("token", token)
+        return null
+      }
+
+      return data as Session
+    } catch (error) {
+      console.error("[v0] Erro ao obter sessão:", error)
       return null
     }
-    return session
   }
 
   async deleteSession(token: string): Promise<boolean> {
-    return this.sessions.delete(token)
+    try {
+      const supabase = this.getSupabase()
+      const { error } = await supabase.from("sessions").delete().eq("token", token)
+
+      if (error) return false
+      return true
+    } catch (error) {
+      console.error("[v0] Erro ao eliminar sessão:", error)
+      return false
+    }
   }
 
   // Utility
-  private hashPassword(password: string): string {
-    // In production, use bcrypt
+  hashPassword(password: string): string {
     return crypto.createHash("sha256").update(password).digest("hex")
   }
 
