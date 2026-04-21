@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { LogOut, Plus, FolderOpen, CreditCard, MessageCircle, Zap } from "lucide-react"
+import { Plus, FolderOpen, CreditCard, MessageCircle, Zap } from "lucide-react"
+import { AdminHeader } from "@/components/admin-header"
 
 export const dynamic = 'force-dynamic'
 
@@ -37,15 +38,6 @@ export default function DashboardPage() {
     }
   }
 
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" })
-      router.push("/admin/login")
-    } catch (err) {
-      console.error("[v0] Erro ao fazer logout:", err)
-    }
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -56,27 +48,16 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="border-b border-border bg-card">
-        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-foreground font-serif">KIXINDE YA NGONGO</h1>
-            <p className="text-xs text-muted-foreground font-sans mt-1">Bem vindo, {user?.name}</p>
-          </div>
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="border-border font-sans"
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair
-          </Button>
-        </div>
-      </header>
+      <AdminHeader 
+        title="Painel Administrativo" 
+        userName={user?.name}
+        showHome={false}
+      />
 
-      <main className="flex-1 mx-auto w-full max-w-7xl px-6 py-12">
+      <main className="flex-1 mx-auto w-full max-w-7xl px-6 py-8">
         <div className="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-foreground font-serif">Painel Administrativo</h2>
+            <h2 className="text-2xl font-bold text-foreground font-serif">Dashboard</h2>
             <p className="text-muted-foreground mt-2 font-sans">Total: {projects.length} projectos</p>
           </div>
           <div className="flex gap-3">
