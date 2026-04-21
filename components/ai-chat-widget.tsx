@@ -14,19 +14,36 @@ interface AIChatWidgetProps {
 
 export function AIChatWidget({ isOpen, onClose }: AIChatWidgetProps) {
   const [conversationId, setConversationId] = useState<string>('')
+  const [error, setError] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
-  const { messages, input, handleInputChange, handleSubmit, isLoading, status } = useChat({
-    transport: new DefaultChatTransport({
-      api: '/api/ai/chat',
-      prepareSendMessagesRequest: ({ messages }) => ({
-        body: {
-          messages,
-          conversationId,
-        },
+  let chatHook: any
+  try {
+    chatHook = useChat({
+      transport: new DefaultChatTransport({
+        api: '/api/ai/chat',
+        prepareSendMessagesRequest: ({ messages }) => ({
+          body: {
+            messages,
+            conversationId,
+          },
+        }),
       }),
-    }),
-  })
+    })
+  } catch (e) {
+    console.error('[v0] Erro ao inicializar chat:', e)
+    setError('Erro ao inicializar chat')
+    chatHook = {
+      messages: [],
+      input: '',
+      handleInputChange: () => {},
+      handleSubmit: () => {},
+      isLoading: false,
+      status: 'error',
+    }
+  }
+
+  const { messages, input, handleInputChange, handleSubmit, isLoading, status } = chatHook
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -38,6 +55,20 @@ export function AIChatWidget({ isOpen, onClose }: AIChatWidgetProps) {
   }
 
   if (!isOpen) return null
+
+  if (error) {
+    return (
+      <div className="fixed bottom-20 right-6 w-96 bg-card border border-destructive rounded-lg shadow-2xl flex flex-col z-50 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-foreground">Erro</h3>
+          <Button onClick={onClose} variant="ghost" size="icon" className="h-6 w-6">
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        <p className="text-sm text-destructive">{error}</p>
+      </div>
+    )
+  }
 
   return (
     <div className="fixed bottom-20 right-6 w-96 max-h-[600px] bg-card border border-border rounded-lg shadow-2xl flex flex-col z-50">
@@ -69,30 +100,39 @@ export function AIChatWidget({ isOpen, onClose }: AIChatWidgetProps) {
         )}
         
         {messages.map((message) => {
-          // Extract text from UIMessage parts
-          const messageText = message.parts
-            ?.filter((p: any) => p.type === 'text')
-            .map((p: any) => p.text)
-            .join('') || ''
+          try {
+            // Extract text from UIMessage parts
+            const messageText = message.parts
+              ?.filter((p: any) => p.type === 'text')
+              .map((p: any) => p.text)
+              .join('') || ''
 
-          return (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
+            return (
               <div
-                className={`max-w-xs px-4 py-2 rounded-lg ${
-                  message.role === 'user'
-                    ? 'bg-[#F7A71C] text-[#303030]'
-                    : 'bg-secondary text-foreground'
-                } font-sans text-sm`}
+                key={message.id}
+                className={`flex ${
+                  message.role === 'user' ? 'justify-end' : 'justify-start'
+                }`}
               >
-                {messageText}
+                <div
+                  className={`max-w-xs px-4 py-2 rounded-lg ${
+                    message.role === 'user'
+                      ? 'bg-[#F7A71C] text-[#303030]'
+                      : 'bg-secondary text-foreground'
+                  } font-sans text-sm`}
+                >
+                  {messageText || 'Mensagem vazia'}
+                </div>
               </div>
-            </div>
-          )
+            )
+          } catch (e) {
+            console.error('[v0] Erro ao renderizar mensagem:', e)
+            return (
+              <div key={message.id} className="text-xs text-red-500">
+                Erro ao renderizar mensagem
+              </div>
+            )
+          }
         })}
 
         {isLoading && (
