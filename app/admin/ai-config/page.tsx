@@ -162,6 +162,7 @@ export default function AIConfigPage() {
                     <option value="openai">OpenAI</option>
                     <option value="anthropic">Anthropic</option>
                     <option value="groq">Groq</option>
+                    <option value="v0">V0 (Vercel AI)</option>
                   </select>
                 </div>
 
@@ -171,9 +172,15 @@ export default function AIConfigPage() {
                     type="text"
                     value={formData.model}
                     onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                    placeholder="ex: gpt-4-mini"
+                    placeholder={formData.provider === 'v0' ? 'ex: gpt-5-mini' : formData.provider === 'openai' ? 'ex: gpt-4-mini' : 'ex: claude-opus'}
                     className="mt-1 font-mono text-sm"
                   />
+                  <p className="text-xs text-muted-foreground mt-1 font-sans">
+                    {formData.provider === 'v0' && 'Modelos disponíveis via Vercel AI Gateway: gpt-5-mini, claude-opus, etc'}
+                    {formData.provider === 'openai' && 'Modelos OpenAI: gpt-4-mini, gpt-4, gpt-3.5-turbo, etc'}
+                    {formData.provider === 'anthropic' && 'Modelos Anthropic: claude-opus, claude-sonnet, claude-haiku, etc'}
+                    {formData.provider === 'groq' && 'Modelos Groq: mixtral-8x7b-32768, llama2-70b-4096, etc'}
+                  </p>
                 </div>
 
                 <div>
@@ -182,11 +189,13 @@ export default function AIConfigPage() {
                     type="password"
                     value={formData.apiKey}
                     onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                    placeholder="Cole aqui a sua API key"
+                    placeholder={formData.provider === 'v0' ? 'Vercel AI Gateway usa VERCEL_API_KEY' : 'Cole aqui a sua API key'}
                     className="mt-1 font-mono text-xs"
                   />
                   <p className="text-xs text-muted-foreground mt-1 font-sans">
-                    Será encriptada e não será exibida novamente
+                    {formData.provider === 'v0' 
+                      ? 'V0 usa a Vercel AI Gateway (zero-config). A API key será usada automaticamente se configurada em variáveis de ambiente.'
+                      : 'Será encriptada e não será exibida novamente'}
                   </p>
                 </div>
               </div>
