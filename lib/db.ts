@@ -1,7 +1,7 @@
 import { User, Project, Subscription, ProjectLog, Session, SubscriptionPlan, PaymentMethod, UserSubscription, PaymentTransaction, TelegramConfig } from "./types"
 import crypto from "crypto"
 
-// Supabase Database Layer
+// Force reparse - Supabase Database Layer
 class Database {
   private getSupabase() {
     const { createClient } = require("@supabase/supabase-js")
