@@ -879,6 +879,7 @@ class Database {
       return []
     }
   }
+}
 
 // Export singleton instance
 export const db = new Database()
