@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { OrbitControls, Environment, PerspectiveCamera, Grid, AxesHelper } from '@react-three/drei'
+import { OrbitControls, Environment, PerspectiveCamera, Grid } from '@react-three/drei'
 import * as THREE from 'three'
 
 interface SceneViewerProps {
@@ -11,6 +11,18 @@ interface SceneViewerProps {
   showAxes?: boolean
   cameraPosition?: [number, number, number]
   environmentPreset?: 'sunset' | 'studio' | 'forest' | 'city' | 'dawn' | 'night' | 'warehouse' | 'park' | 'apartment' | 'lobby'
+}
+
+function AxesHelperComponent({ show }: { show: boolean }) {
+  const axesRef = useRef<THREE.AxesHelper>(null)
+  
+  useEffect(() => {
+    if (axesRef.current && show) {
+      axesRef.current.visible = true
+    }
+  }, [show])
+
+  return <primitive ref={axesRef} object={new THREE.AxesHelper(10)} visible={show} />
 }
 
 export function SceneViewer({
@@ -37,7 +49,7 @@ export function SceneViewer({
 
       <Environment preset={environmentPreset} />
 
-      {showAxes && <AxesHelper args={[10]} />}
+      {showAxes && <AxesHelperComponent show={true} />}
       {showGrid && <Grid args={[20, 20]} cellSize={0.5} />}
 
       <ambientLight intensity={0.5} />
