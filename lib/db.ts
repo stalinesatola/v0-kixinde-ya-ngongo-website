@@ -711,10 +711,13 @@ class Database {
     // This handles both hashed and plain text passwords stored in DB
     if (!hash.startsWith('$') && hash.length < 64) {
       // Plain text password stored in DB
+      console.log("[v0] comparePassword - comparing plain text:", password === hash, `"${password}" vs "${hash}"`)
       return password === hash
     }
     // Otherwise try hash comparison (SHA256 = 64 chars hex)
-    return this.hashPassword(password) === hash
+    const hashed = this.hashPassword(password)
+    console.log("[v0] comparePassword - comparing hash:", hashed === hash, `"${hashed}" vs "${hash}"`)
+    return hashed === hash
   }
 
   // AI Config - Using Supabase

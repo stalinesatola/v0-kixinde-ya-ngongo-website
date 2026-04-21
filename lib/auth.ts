@@ -29,6 +29,11 @@ export async function loginUser(email: string, password: string) {
   }
 
   console.log("[v0] loginUser - comparando senha")
+  console.log("[v0] DEBUG - senha input:", password)
+  console.log("[v0] DEBUG - senha stored:", user.password)
+  console.log("[v0] DEBUG - stored length:", user.password?.length)
+  console.log("[v0] DEBUG - input length:", password?.length)
+  
   const isPasswordValid = db.comparePassword(password, user.password)
   console.log("[v0] loginUser - senha válida:", isPasswordValid)
   
