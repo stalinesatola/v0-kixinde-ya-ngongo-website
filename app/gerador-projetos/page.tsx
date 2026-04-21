@@ -649,19 +649,6 @@ export default function GeradorProjetosPage() {
   // FORM VIEW
   return (
     <div className="pt-[73px]">
-      {/* Hero */}
-      <section className="relative py-24 bg-[#303030]">
-        <div className="mx-auto max-w-7xl px-6">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[#F7A71C] font-sans">Inteligencia Artificial</p>
-          <h1 className="text-4xl font-bold text-[#ffffff] md:text-5xl lg:text-6xl font-serif text-balance">
-            Gerador de Projectos
-          </h1>
-          <p className="mt-4 text-lg text-[#c0c0c0] max-w-2xl font-sans leading-relaxed">
-            Utilize inteligencia artificial para gerar plantas baixas, cortes, alcados, volumetria 3D e estrutura BIM para o seu projecto.
-          </p>
-        </div>
-      </section>
-
       {/* Form */}
       <section className="py-20 bg-background">
         <div className="mx-auto max-w-4xl px-6">
