@@ -541,7 +541,11 @@ class Database {
 
   async createTelegramConfig(config: Omit<TelegramConfig, "id" | "createdAt" | "updatedAt">): Promise<TelegramConfig> {
     try {
-      const supabase = this.getSupabase()
+      const { createClient } = await import("@supabase/supabase-js")
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+      )
       const id = `tg-${Date.now()}`
 
       const { data, error } = await supabase
@@ -566,7 +570,11 @@ class Database {
 
   async updateTelegramConfig(id: string, updates: Partial<TelegramConfig>): Promise<TelegramConfig | null> {
     try {
-      const supabase = this.getSupabase()
+      const { createClient } = await import("@supabase/supabase-js")
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+      )
       const { data, error } = await supabase
         .from("telegram_config")
         .update({
