@@ -6,29 +6,23 @@ import { NextResponse } from "next/server"
 export async function POST(request: Request) {
   try {
     const { email, password } = await request.json()
-    console.log("[v0] POST /api/auth/login - email:", email)
 
     if (!email || !password) {
-      console.log("[v0] Email ou senha vazios")
       return NextResponse.json(
         createErrorResponse("Email e senha são obrigatórios", 400),
         { status: 400 }
       )
     }
 
-    console.log("[v0] Chamando loginUser...")
     const user = await loginUser(email, password)
-    console.log("[v0] loginUser resultado:", user ? "user encontrado" : "null")
 
     if (!user) {
-      console.log("[v0] User não encontrado, retornando 401")
       return NextResponse.json(
         createErrorResponse("Email ou senha inválidos", 401),
         { status: 401 }
       )
     }
 
-    console.log("[v0] Login bem-sucedido, criando resposta...")
     const response = NextResponse.json(
       createSuccessResponse({
         user: {
@@ -47,7 +41,6 @@ export async function POST(request: Request) {
       maxAge: 60 * 60 * 24 * 7,
     })
 
-    console.log("[v0] Retornando resposta de sucesso")
     return response
   } catch (error) {
     console.error("[v0] Erro no POST /api/auth/login:", error)
