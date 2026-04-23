@@ -88,16 +88,17 @@ export default function AIConfigPage() {
         setTimeout(() => setMessage({ type: null, text: '' }), 3000)
       } else {
         const errorText = responseData.error?.message || 'Erro desconhecido'
+        const errorId = responseData.error?.id || ''
         setMessage({
           type: 'error',
-          text: `Erro ao salvar: ${errorText}`,
+          text: `Erro ao salvar configuração: ${errorText}${errorId ? ` (ID: ${errorId})` : ''}`,
         })
       }
     } catch (error) {
       console.error('[v0] Erro ao salvar:', error)
       setMessage({
         type: 'error',
-        text: `Erro ao salvar configuração`,
+        text: `Erro ao salvar configuração: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
       })
     } finally {
       setSaving(false)

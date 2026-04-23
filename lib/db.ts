@@ -781,7 +781,7 @@ class Database {
     }
   }
 
-  async updateAIConfig(id: string, updates: any): Promise<any | null> {
+  async updateAIConfig(id: string, updates: any): Promise<any> {
     try {
       const { createClient } = await import("@supabase/supabase-js")
       const supabase = createClient(
@@ -797,15 +797,20 @@ class Database {
         .single()
 
       if (error) {
-        console.error("[v0] Erro ao atualizar config IA:", error)
-        return null
+        console.error("[v0] Erro Supabase ao atualizar config IA:", error.message, error.code)
+        throw new Error(`Supabase error: ${error.message}`)
       }
 
-      console.log("[v0] Config IA atualizada no Supabase")
+      if (!data) {
+        console.error("[v0] Nenhum dado retornado após atualizar")
+        throw new Error("No data returned from update")
+      }
+
+      console.log("[v0] Config IA atualizada no Supabase com ID:", data.id)
       return data
     } catch (error) {
-      console.log("[v0] Exceção ao atualizar config IA:", error)
-      return null
+      console.error("[v0] Exceção ao atualizar config IA:", error instanceof Error ? error.message : String(error))
+      throw error
     }
   }
 
