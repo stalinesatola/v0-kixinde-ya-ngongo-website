@@ -521,17 +521,21 @@ class Database {
   async getTelegramConfig(): Promise<TelegramConfig | null> {
     try {
       const supabase = this.getSupabase()
+      // Get the most recent config, regardless of isActive status
+      // This allows testing even if the config is temporarily disabled
       const { data, error } = await supabase
         .from("telegram_config")
         .select("*")
-        .eq("isActive", true)
+        .order("createdAt", { ascending: false })
+        .limit(1)
         .single()
 
       if (error) {
-        console.log("[v0] Nenhuma config Telegram ativa encontrada")
+        console.log("[v0] Nenhuma configuração Telegram encontrada")
         return null
       }
 
+      console.log("[v0] Config Telegram obtida:", { id: data.id, isActive: data.isActive })
       return data as TelegramConfig
     } catch (error) {
       console.error("[v0] Erro ao obter config Telegram:", error)
