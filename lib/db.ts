@@ -560,10 +560,13 @@ class Database {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error("[v0] Erro Supabase ao criar config Telegram:", error.message)
+        throw error
+      }
       return data as TelegramConfig
     } catch (error) {
-      console.error("[v0] Erro ao criar config Telegram:", error)
+      console.error("[v0] Exceção ao criar config Telegram:", error instanceof Error ? error.message : String(error))
       throw error
     }
   }
@@ -585,11 +588,14 @@ class Database {
         .select()
         .single()
 
-      if (error) return null
+      if (error) {
+        console.error("[v0] Erro Supabase ao atualizar config Telegram:", error.message)
+        throw error
+      }
       return data as TelegramConfig
     } catch (error) {
-      console.error("[v0] Erro ao atualizar config Telegram:", error)
-      return null
+      console.error("[v0] Exceção ao atualizar config Telegram:", error instanceof Error ? error.message : String(error))
+      throw error
     }
   }
 
