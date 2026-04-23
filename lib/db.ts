@@ -744,6 +744,7 @@ class Database {
 
   async createAIConfig(config: any): Promise<any> {
     try {
+      console.log("[v0] createAIConfig iniciando com config:", JSON.stringify(config))
       const { createClient } = await import("@supabase/supabase-js")
       const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL || "",
@@ -757,14 +758,19 @@ class Database {
         .single()
 
       if (error) {
-        console.error("[v0] Erro ao criar config IA:", error)
-        throw error
+        console.error("[v0] Erro Supabase ao criar config IA:", error.message, error.code)
+        throw new Error(`Supabase error: ${error.message}`)
       }
 
-      console.log("[v0] Config IA criada no Supabase")
+      if (!data) {
+        console.error("[v0] Nenhum dado retornado após inserir")
+        throw new Error("No data returned from insert")
+      }
+
+      console.log("[v0] Config IA criada no Supabase com ID:", data.id)
       return data
     } catch (error) {
-      console.error("[v0] Exceção ao criar config IA:", error)
+      console.error("[v0] Exceção ao criar config IA:", error instanceof Error ? error.message : String(error))
       throw error
     }
   }
