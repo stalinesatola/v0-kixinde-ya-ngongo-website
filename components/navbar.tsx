@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Menu, X, ChevronDown } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Menu, X, ChevronDown, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const navLinks = [
@@ -13,6 +14,31 @@ const navLinks = [
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const router = useRouter()
+
+  useEffect(() => {
+    // Check if user is logged in by checking for session cookie
+    const checkSession = async () => {
+      try {
+        const response = await fetch("/api/auth/user")
+        setIsLoggedIn(response.ok)
+      } catch (error) {
+        setIsLoggedIn(false)
+      }
+    }
+    checkSession()
+  }, [])
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" })
+      setIsLoggedIn(false)
+      router.push("/")
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error)
+    }
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
@@ -72,6 +98,16 @@ export function Navbar() {
           <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-[#d99116] font-sans font-semibold">
             <Link href="/gerador-projetos">Simular Projeto</Link>
           </Button>
+          {isLoggedIn && (
+            <Button
+              onClick={handleLogout}
+              size="sm"
+              className="bg-foreground text-background hover:bg-foreground/90 font-sans font-semibold"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sair
+            </Button>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -133,6 +169,16 @@ export function Navbar() {
             <Button asChild size="sm" className="mt-4 bg-accent text-accent-foreground hover:bg-[#d99116] font-sans font-semibold">
               <Link href="/gerador-projetos">Simular Projeto</Link>
             </Button>
+            {isLoggedIn && (
+              <Button
+                onClick={handleLogout}
+                size="sm"
+                className="mt-2 w-full bg-foreground text-background hover:bg-foreground/90 font-sans font-semibold"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair
+              </Button>
+            )}
           </div>
         </div>
       )}
