@@ -57,6 +57,10 @@ export function useNotification() {
       return toast.loading(message)
     },
 
+    dismiss: (toastId: string | number) => {
+      toast.dismiss(toastId)
+    },
+
     promise: <T,>(
       promise: Promise<T>,
       messages: {

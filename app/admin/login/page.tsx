@@ -19,14 +19,15 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    const toastId = notify.loading("A fazer login...")
 
     try {
-      const toastId = notify.loading("A fazer login...")
-      
       const data = await fetchJson("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       })
+
+      notify.dismiss(toastId)
 
       if (!data.success) {
         const errorMsg = data.error?.message || "Email ou senha inválidos"
@@ -38,6 +39,7 @@ export default function LoginPage() {
       notify.success("Login realizado com sucesso!", { duration: 2000 })
       setTimeout(() => router.push("/admin/dashboard"), 1000)
     } catch (err) {
+      notify.dismiss(toastId)
       const errorId = errorLogger.error(
         "Login falhou",
         { email },
