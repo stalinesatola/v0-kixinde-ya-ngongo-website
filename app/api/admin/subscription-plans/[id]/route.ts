@@ -4,16 +4,17 @@ import { NextResponse } from 'next/server'
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getSessionUser()
     if (!user || user.role !== 'admin') {
       return NextResponse.json({ error: 'Nao autorizado' }, { status: 403 })
     }
 
     const data = await request.json()
-    const plan = await db.updateSubscriptionPlan(params.id, data)
+    const plan = await db.updateSubscriptionPlan(id, data)
     
     if (!plan) {
       return NextResponse.json({ error: 'Plano nao encontrado' }, { status: 404 })
@@ -28,9 +29,10 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getSessionUser()
     if (!user || user.role !== 'admin') {
       return NextResponse.json({ error: 'Nao autorizado' }, { status: 403 })
@@ -38,7 +40,7 @@ export async function DELETE(
 
     // In a real app, you might soft-delete or check for active subscriptions
     // For now, we'll just mark it as inactive
-    const plan = await db.updateSubscriptionPlan(params.id, { isActive: false })
+    const plan = await db.updateSubscriptionPlan(id, { isActive: false })
     
     if (!plan) {
       return NextResponse.json({ error: 'Plano nao encontrado' }, { status: 404 })
