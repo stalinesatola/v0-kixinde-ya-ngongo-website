@@ -13,7 +13,7 @@ export async function POST() {
     if (!user || user.role !== 'admin') {
       console.log('[v0] Acesso negado - não é admin')
       return NextResponse.json(
-        createErrorResponse('Não autorizado', 403),
+        createErrorResponse('Não autorizado', 'UNAUTHORIZED'),
         { status: 403 }
       )
     }
@@ -23,7 +23,7 @@ export async function POST() {
     if (!config?.is_active) {
       console.log('[v0] IA não está ativada')
       return NextResponse.json(
-        createErrorResponse('IA não está configurada ou ativada', 400),
+        createErrorResponse('IA não está configurada ou ativada', 'NOT_CONFIGURED'),
         { status: 400 }
       )
     }
@@ -59,7 +59,7 @@ export async function POST() {
       console.error('[v0] Erro ao chamar IA:', aiError)
       const errorMessage = aiError instanceof Error ? aiError.message : 'Erro desconhecido ao chamar IA'
       return NextResponse.json(
-        createErrorResponse(`Erro ao testar IA: ${errorMessage}`, 500),
+        createErrorResponse(`Erro ao testar IA: ${errorMessage}`, 'AI_ERROR'),
         { status: 500 }
       )
     }
@@ -71,7 +71,7 @@ export async function POST() {
     )
     console.error('[v0] Exceção no teste:', error)
     return NextResponse.json(
-      createErrorResponse('Erro ao testar IA', 500, errorId),
+      createErrorResponse('Erro ao testar IA', 'INTERNAL_ERROR', errorId),
       { status: 500 }
     )
   }

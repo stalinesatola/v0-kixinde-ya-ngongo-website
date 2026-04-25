@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     if (!config?.is_active) {
       console.log('[v0] IA não está ativada ou não configurada')
       return NextResponse.json(
-        createErrorResponse('IA não está disponível. Configure em /admin/ai-config', 503),
+        createErrorResponse('IA não está disponível. Configure em /admin/ai-config', 'AI_UNAVAILABLE'),
         { status: 503 }
       )
     }
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       error instanceof Error ? error : new Error(String(error))
     )
     return NextResponse.json(
-      createErrorResponse('Erro ao processar chat', 500, errorId),
+      createErrorResponse('Erro ao processar chat', 'INTERNAL_ERROR', errorId),
       { status: 500 }
     )
   }

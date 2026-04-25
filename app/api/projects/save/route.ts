@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       error instanceof Error ? error : new Error(String(error))
     )
     return NextResponse.json(
-      createErrorResponse("Erro ao guardar projeto", 500, errorId),
+      createErrorResponse("Erro ao guardar projeto", 'INTERNAL_ERROR', errorId),
       { status: 500 }
     )
   }
