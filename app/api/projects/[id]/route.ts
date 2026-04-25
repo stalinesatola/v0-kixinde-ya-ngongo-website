@@ -4,16 +4,17 @@ import { NextResponse } from "next/server"
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const user = await getSessionUser()
 
     if (!user) {
       return NextResponse.json({ error: "Nao autenticado" }, { status: 401 })
     }
 
-    const project = await db.getProject(params.id)
+    const project = await db.getProject(id)
 
     if (!project) {
       return NextResponse.json({ error: "Projecto nao encontrado" }, { status: 404 })
@@ -24,12 +25,12 @@ export async function DELETE(
       return NextResponse.json({ error: "Nao autorizado" }, { status: 403 })
     }
 
-    await db.deleteProject(params.id)
+    await db.deleteProject(id)
 
     // Log deletion
     await db.addLog({
       userId: user.id,
-      projectId: params.id,
+      projectId: id,
       action: "updated",
       details: `Projecto eliminado: ${project.projectName}`,
     })
