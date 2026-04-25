@@ -1,14 +1,26 @@
 import { User, Project, Subscription, ProjectLog, Session, SubscriptionPlan, PaymentMethod, UserSubscription, PaymentTransaction, TelegramConfig } from "./types"
 import crypto from "crypto"
+import { createClient, SupabaseClient } from "@supabase/supabase-js"
+import { promisify } from "util"
 
-// Force reparse - Supabase Database Layer
-class Database {
-  private getSupabase() {
-    const { createClient } = require("@supabase/supabase-js")
-    return createClient(
+// Singleton Supabase client — criado uma vez, reutilizado em todas as chamadas
+let _supabaseInstance: SupabaseClient | null = null
+function getSupabaseClient(): SupabaseClient {
+  if (!_supabaseInstance) {
+    _supabaseInstance = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL || "",
       process.env.SUPABASE_SERVICE_ROLE_KEY || ""
     )
+  }
+  return _supabaseInstance
+}
+
+const scryptAsync = promisify(crypto.scrypt)
+
+// Supabase Database Layer
+class Database {
+  private getSupabase(): SupabaseClient {
+    return getSupabaseClient()
   }
 
   // Users
@@ -49,7 +61,7 @@ class Database {
   async createUser(user: Omit<User, "id" | "createdAt" | "updatedAt">): Promise<User> {
     try {
       const supabase = this.getSupabase()
-      const id = `user-${Date.now()}`
+      const id = crypto.randomUUID()
       
       const { data, error } = await supabase
         .from("users")
@@ -108,7 +120,7 @@ class Database {
   async createProject(project: Omit<Project, "id" | "createdAt" | "updatedAt">): Promise<Project> {
     try {
       const supabase = this.getSupabase()
-      const id = `proj-${Date.now()}`
+      const id = crypto.randomUUID()
 
       const { data, error } = await supabase
         .from("projects")
@@ -226,7 +238,7 @@ class Database {
   async createSubscription(subscription: Omit<Subscription, "id" | "createdAt" | "updatedAt">): Promise<Subscription> {
     try {
       const supabase = this.getSupabase()
-      const id = `sub-${Date.now()}`
+      const id = crypto.randomUUID()
 
       const { data, error } = await supabase
         .from("subscriptions")
@@ -284,7 +296,7 @@ class Database {
   async createSubscriptionPlan(plan: Omit<SubscriptionPlan, "id" | "createdAt" | "updatedAt">): Promise<SubscriptionPlan> {
     try {
       const supabase = this.getSupabase()
-      const id = `plan-${Date.now()}`
+      const id = crypto.randomUUID()
 
       const { data, error } = await supabase
         .from("subscription_plans")
@@ -355,7 +367,7 @@ class Database {
   async createUserSubscription(subscription: Omit<UserSubscription, "id" | "createdAt" | "updatedAt">): Promise<UserSubscription> {
     try {
       const supabase = this.getSupabase()
-      const id = `usub-${Date.now()}`
+      const id = crypto.randomUUID()
 
       const { data, error } = await supabase
         .from("user_subscriptions")
@@ -434,7 +446,7 @@ class Database {
   async createPaymentMethod(method: Omit<PaymentMethod, "id" | "createdAt" | "updatedAt">): Promise<PaymentMethod> {
     try {
       const supabase = this.getSupabase()
-      const id = `pm-${Date.now()}`
+      const id = crypto.randomUUID()
 
       const { data, error } = await supabase
         .from("payment_methods")
@@ -459,7 +471,7 @@ class Database {
   async createPaymentTransaction(transaction: Omit<PaymentTransaction, "id" | "createdAt" | "updatedAt">): Promise<PaymentTransaction> {
     try {
       const supabase = this.getSupabase()
-      const id = `trans-${Date.now()}`
+      const id = crypto.randomUUID()
 
       const { data, error } = await supabase
         .from("payment_transactions")
@@ -541,12 +553,8 @@ class Database {
 
   async createTelegramConfig(config: Omit<TelegramConfig, "id" | "createdAt" | "updatedAt">): Promise<TelegramConfig> {
     try {
-      const { createClient } = await import("@supabase/supabase-js")
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-      )
-      const id = `tg-${Date.now()}`
+      const supabase = this.getSupabase()
+      const id = crypto.randomUUID()
 
       const { data, error } = await supabase
         .from("telegram_config")
@@ -573,11 +581,7 @@ class Database {
 
   async updateTelegramConfig(id: string, updates: Partial<TelegramConfig>): Promise<TelegramConfig | null> {
     try {
-      const { createClient } = await import("@supabase/supabase-js")
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-      )
+      const supabase = this.getSupabase()
       const { data, error } = await supabase
         .from("telegram_config")
         .update({
@@ -622,7 +626,7 @@ class Database {
   async addLog(log: Omit<ProjectLog, "id" | "timestamp">): Promise<ProjectLog> {
     try {
       const supabase = this.getSupabase()
-      const id = `log-${Date.now()}`
+      const id = crypto.randomUUID()
 
       const { data, error } = await supabase
         .from("project_logs")
@@ -646,7 +650,7 @@ class Database {
   async createSession(userId: string): Promise<Session> {
     try {
       const supabase = this.getSupabase()
-      const id = `sess-${Date.now()}`
+      const id = crypto.randomUUID()
       const token = crypto.randomBytes(32).toString("hex")
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
@@ -707,27 +711,33 @@ class Database {
     }
   }
 
-  // Utility
-  hashPassword(password: string): string {
-    return crypto.createHash("sha256").update(password).digest("hex")
+  // Utility — hashing seguro com scrypt (Node.js nativo)
+  async hashPassword(password: string): Promise<string> {
+    const salt = crypto.randomBytes(16).toString("hex")
+    const derivedKey = await scryptAsync(password, salt, 64) as Buffer
+    return `${salt}:${derivedKey.toString("hex")}`
   }
 
-  comparePassword(password: string, hash: string): boolean {
-    // Always hash the input password and compare with stored hash
-    const hashed = this.hashPassword(password)
-    const isValid = hashed === hash
-    console.log("[v0] comparePassword - comparing:", isValid, `"${hashed}" vs "${hash}"`)
-    return isValid
+  async comparePassword(password: string, storedHash: string): Promise<boolean> {
+    try {
+      const [salt, hash] = storedHash.split(":")
+      if (!salt || !hash) return false
+      const derivedKey = await scryptAsync(password, salt, 64) as Buffer
+      const candidateHash = derivedKey.toString("hex")
+      // Comparação em tempo constante para evitar timing attacks
+      return crypto.timingSafeEqual(
+        Buffer.from(hash, "hex"),
+        Buffer.from(candidateHash, "hex")
+      )
+    } catch {
+      return false
+    }
   }
 
   // AI Config - Using Supabase
   async getAIConfig(): Promise<any | null> {
     try {
-      const { createClient } = await import("@supabase/supabase-js")
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-      )
+      const supabase = this.getSupabase()
 
       const { data, error } = await supabase
         .from("ai_config")
@@ -751,11 +761,7 @@ class Database {
   async createAIConfig(config: any): Promise<any> {
     try {
       console.log("[v0] createAIConfig iniciando com config:", JSON.stringify(config))
-      const { createClient } = await import("@supabase/supabase-js")
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-      )
+      const supabase = this.getSupabase()
 
       const { data, error } = await supabase
         .from("ai_config")
@@ -783,11 +789,7 @@ class Database {
 
   async updateAIConfig(id: string, updates: any): Promise<any> {
     try {
-      const { createClient } = await import("@supabase/supabase-js")
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-      )
+      const supabase = this.getSupabase()
 
       const { data, error } = await supabase
         .from("ai_config")
@@ -817,11 +819,7 @@ class Database {
   // AI Conversations
   async createConversation(userId: string, data: any): Promise<any> {
     try {
-      const { createClient } = await import("@supabase/supabase-js")
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-      )
+      const supabase = this.getSupabase()
 
       const { data: conv, error } = await supabase
         .from("ai_conversations")
@@ -844,11 +842,7 @@ class Database {
 
   async getConversations(userId: string): Promise<any[]> {
     try {
-      const { createClient } = await import("@supabase/supabase-js")
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-      )
+      const supabase = this.getSupabase()
 
       const { data, error } = await supabase
         .from("ai_conversations")
@@ -867,11 +861,7 @@ class Database {
   // AI Messages
   async createMessage(data: any): Promise<any> {
     try {
-      const { createClient } = await import("@supabase/supabase-js")
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-      )
+      const supabase = this.getSupabase()
 
       const { data: msg, error } = await supabase
         .from("ai_messages")
@@ -889,11 +879,7 @@ class Database {
 
   async getMessages(conversationId: string): Promise<any[]> {
     try {
-      const { createClient } = await import("@supabase/supabase-js")
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-      )
+      const supabase = this.getSupabase()
 
       const { data, error } = await supabase
         .from("ai_messages")

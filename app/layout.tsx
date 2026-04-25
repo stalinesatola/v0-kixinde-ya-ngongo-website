@@ -5,6 +5,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Toaster } from 'sonner'
 import './globals.css'
 import { Navbar } from '@/components/navbar'
+import { Footer } from '@/components/footer'
 import { AIChatButton } from '@/components/ai-chat-button'
 
 const montserrat = Montserrat({
@@ -48,6 +49,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <Navbar />
         <main>{children}</main>
+        <Footer />
         <AIChatButton />
         <Toaster
           position="top-right"

@@ -1,4 +1,4 @@
-# Sistema de Tipos para Admin Panel
+// Sistema de Tipos para Admin Panel
 
 export interface User {
   id: string

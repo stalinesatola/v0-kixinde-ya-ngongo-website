@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Upload, Sparkles, Loader2, FileText, Layers, Building2, Ruler, Box, Cpu, AreaChart, Lightbulb, ArrowLeft, Download, MessageCircle } from "lucide-react"
+import { Upload, Sparkles, Loader2, FileText, Layers, Building2, Ruler, Box, Cpu, AreaChart, Lightbulb, ArrowLeft, Download, MessageCircle, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { TerrainMap } from "@/components/terrain-map"
 import { IrregularTerrainCalculator } from "@/components/irregular-terrain-calculator"
 import { Project3DViewerWrapper } from "@/components/3d/project-viewer-wrapper"
+import { toast } from "sonner"
 
 const projectTypes = [
   { value: "Casa", icon: "🏠", subTypes: [] },
@@ -334,12 +335,35 @@ export default function GeradorProjetosPage() {
   }
 
   const handleSendViaEmail = async () => {
+    if (!formData.email) {
+      toast.error("Email do cliente não preenchido")
+      return
+    }
+    const toastId = toast.loading(`A enviar estudo para ${formData.email}...`)
     try {
-      console.log("[v0] Enviando via email para:", formData.email)
-      // In a real scenario, this would call a backend endpoint to send email
-      alert("Email com o estudo prévio seria enviado para: " + formData.email)
+      const response = await fetch("/api/send-delivery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          projectType: formData.projectType,
+          projectSubType: formData.projectSubType,
+          location: formData.location,
+          area: formData.area,
+          generatedContent: streamContent,
+        }),
+      })
+      const data = await response.json()
+      if (response.ok && data.success) {
+        toast.success(data.message, { id: toastId })
+      } else {
+        toast.error(data.error || "Erro ao enviar email", { id: toastId })
+      }
     } catch (error) {
       console.error("[v0] Erro ao enviar email:", error)
+      toast.error("Erro de rede ao enviar email", { id: toastId })
     }
   }
 
@@ -618,14 +642,18 @@ export default function GeradorProjetosPage() {
             {/* Bottom Actions */}
             {!isStreaming && streamContent && (
               <div className="mt-12 flex flex-col gap-6">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <Button onClick={handleReset} variant="outline" className="font-sans">
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Nova Simulacao
+                    Nova Simulação
                   </Button>
                   <Button onClick={handleDownloadPDF} className="bg-blue-600 text-white hover:bg-blue-700 font-sans font-semibold">
                     <Download className="mr-2 h-4 w-4" />
                     Download PDF
+                  </Button>
+                  <Button onClick={handleSendViaEmail} className="bg-[#303030] text-white hover:bg-[#404040] font-sans font-semibold">
+                    <Mail className="mr-2 h-4 w-4" />
+                    Enviar por Email
                   </Button>
                   <Button onClick={handleSendViaWhatsApp} className="bg-green-600 text-white hover:bg-green-700 font-sans font-semibold">
                     Enviar via WhatsApp

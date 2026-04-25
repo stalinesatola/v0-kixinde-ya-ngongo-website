@@ -25,7 +25,7 @@ export async function loginUser(email: string, password: string) {
     return null
   }
 
-  const isPasswordValid = db.comparePassword(password, user.password)
+  const isPasswordValid = await db.comparePassword(password, user.password)
   
   if (!isPasswordValid) {
     return null

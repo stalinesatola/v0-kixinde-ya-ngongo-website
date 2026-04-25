@@ -8,7 +8,20 @@ import { Menu, X, ChevronDown, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const navLinks = [
-  // Links removidos conforme solicitado
+  {
+    label: "Serviços",
+    href: "/servicos",
+    children: [
+      { label: "Arquitetura", href: "/arquitetura" },
+      { label: "Engenharia", href: "/engenharia" },
+      { label: "Simulador de Projetos", href: "/gerador-projetos" },
+    ],
+  },
+  { label: "Portfólio", href: "/portfolio" },
+  { label: "Como Funciona", href: "/como-funciona" },
+  { label: "Pacotes", href: "/pacotes" },
+  { label: "Empresa", href: "/empresa" },
+  { label: "Contacto", href: "/contacto" },
 ]
 
 export function Navbar() {
