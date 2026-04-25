@@ -22,7 +22,7 @@ export default function LoginPage() {
     const toastId = notify.loading("A fazer login...")
 
     try {
-      const data = await fetchJson("/api/auth/login", {
+      const data: any = await fetchJson("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
       })
