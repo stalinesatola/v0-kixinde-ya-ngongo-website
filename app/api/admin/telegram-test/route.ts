@@ -19,12 +19,20 @@ export async function POST() {
       )
     }
 
-    // Get config to verify it's active
+    // Get config to verify it exists
     const config = await db.getTelegramConfig()
-    if (!config?.isActive) {
-      console.log('[v0] Telegram não está ativado')
+    if (!config) {
+      console.log('[v0] Nenhuma configuração Telegram encontrada')
       return NextResponse.json(
-        createErrorResponse('Telegram não está configurado ou ativado', 400),
+        createErrorResponse('Telegram não está configurado. Por favor, configure o Bot Token e Chat ID primeiro.', 400),
+        { status: 400 }
+      )
+    }
+
+    if (!config.isActive) {
+      console.log('[v0] Telegram está desativado')
+      return NextResponse.json(
+        createErrorResponse('Telegram está desativado. Ative a opção "Ativar Telegram" para enviar notificações.', 400),
         { status: 400 }
       )
     }
