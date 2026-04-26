@@ -44,7 +44,7 @@ export async function POST() {
         model: modelString,
         system: config.system_prompt || 'You are a helpful assistant.',
         prompt: testMessage,
-        maxTokens: 100,
+        temperature: 0.7,
       })
       
       console.log('[v0] Resposta recebida:', result.text.substring(0, 50) + '...')
