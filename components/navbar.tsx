@@ -34,7 +34,7 @@ export function Navbar() {
     // Check if user is logged in by checking for session cookie
     const checkSession = async () => {
       try {
-        const response = await fetch("/api/auth/user")
+        const response = await fetch("/api/admin/user")
         setIsLoggedIn(response.ok)
       } catch (error) {
         setIsLoggedIn(false)

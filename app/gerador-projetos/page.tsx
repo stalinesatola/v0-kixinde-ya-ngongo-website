@@ -108,6 +108,7 @@ export default function GeradorProjetosPage() {
       try {
         const response = await fetch("/api/subscription/check")
         if (!response.ok) {
+          console.log("[v0] User is not subscribed or not authenticated")
           setHasSubscription(false)
           setStep("no-subscription")
           return
@@ -119,6 +120,9 @@ export default function GeradorProjetosPage() {
         }
       } catch (error) {
         console.error("[v0] Error checking subscription:", error)
+        // On error, assume no subscription
+        setHasSubscription(false)
+        setStep("no-subscription")
       }
     }
     
