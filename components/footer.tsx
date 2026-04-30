@@ -1,3 +1,7 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { Mail, Phone, MapPin } from "lucide-react"
@@ -33,6 +37,33 @@ const footerSections = [
 ]
 
 export function Footer() {
+  const pathname = usePathname()
+  const [showFooter, setShowFooter] = useState(true)
+  const isHomePage = pathname === '/'
+
+  useEffect(() => {
+    if (!isHomePage) {
+      setShowFooter(true)
+      return
+    }
+
+    const fetchHomeSettings = async () => {
+      try {
+        const response = await fetch('/api/home-settings')
+        const data = await response.json()
+        setShowFooter(data?.data?.settings?.showFooter ?? true)
+      } catch (error) {
+        setShowFooter(true)
+      }
+    }
+
+    fetchHomeSettings()
+  }, [isHomePage])
+
+  if (isHomePage && !showFooter) {
+    return null
+  }
+
   return (
     <footer className="bg-[#303030] text-[#e0e0e0]">
       <div className="mx-auto max-w-7xl px-6 py-16">

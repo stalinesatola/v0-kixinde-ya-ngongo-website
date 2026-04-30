@@ -64,6 +64,18 @@ export interface PaymentTransaction {
   updatedAt: Date
 }
 
+export interface HomePageSettings {
+  id: string
+  showFooter: boolean
+  showMenu: boolean
+  showHomeBody: boolean
+  customColorsEnabled: boolean
+  accentColor: string
+  bodyBackground: string
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface Subscription {
   id: string
   userId: string

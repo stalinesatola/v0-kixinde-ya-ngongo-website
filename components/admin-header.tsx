@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { LogOut, Home } from 'lucide-react'
+import { LogOut, Home, Settings } from 'lucide-react'
 import { useState } from 'react'
 
 interface AdminHeaderProps {
@@ -39,13 +39,22 @@ export function AdminHeader({ title, userName, showHome = true }: AdminHeaderPro
       <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-6">
           {showHome && (
-            <button
-              onClick={() => router.push('/admin/dashboard')}
-              className="text-muted-foreground hover:text-foreground transition-colors"
-              title="Ir para dashboard"
-            >
-              <Home className="w-5 h-5" />
-            </button>
+            <>
+              <button
+                onClick={() => router.push('/admin/dashboard')}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                title="Ir para dashboard"
+              >
+                <Home className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => router.push('/admin/home-settings')}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                title="Configurações da página inicial"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+            </>
           )}
           <div>
             <h1 className="text-lg font-bold text-foreground font-serif">{title}</h1>

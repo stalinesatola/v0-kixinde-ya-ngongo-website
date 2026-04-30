@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, Building2, Compass, Cpu, BrainCircuit, Sparkles, ScanLine, Box } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { db } from '@/lib/db'
 
 const innovations = [
   { icon: BrainCircuit, title: "Inteligência Artificial", desc: "Algoritmos de IA para otimizar projetos e prever resultados de engenharia." },
@@ -10,9 +11,15 @@ const innovations = [
   { icon: Sparkles, title: "Simulação Inteligente", desc: "Simulações de projetos com dados reais do território angolano." },
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  const homeSettings = await db.getHomePageSettings()
+  const showBodySections = homeSettings?.showHomeBody ?? true
+  const customColorsEnabled = homeSettings?.customColorsEnabled ?? false
+  const accentColor = customColorsEnabled ? homeSettings?.accentColor ?? '#F7A71C' : '#F7A71C'
+  const bodyBackground = customColorsEnabled ? homeSettings?.bodyBackground ?? '#ffffff' : undefined
+
   return (
-    <div className="pt-[73px]">
+    <div className="pt-[73px]" style={bodyBackground ? { backgroundColor: bodyBackground } : undefined}>
       {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden">
         <div className="absolute inset-0">
@@ -27,7 +34,7 @@ export default function HomePage() {
         </div>
         <div className="relative mx-auto max-w-7xl px-6 py-32">
           <div className="max-w-2xl">
-            <p className="mb-4 text-sm font-medium uppercase tracking-widest text-[#F7A71C] font-sans">
+            <p className="mb-4 text-sm font-medium uppercase tracking-widest font-sans" style={{ color: accentColor }}>
               Arquitetura &middot; Engenharia &middot; Inteligência Artificial
             </p>
             <h1 className="mb-6 text-4xl font-bold leading-tight text-[#ffffff] md:text-6xl lg:text-7xl font-serif text-balance">
@@ -37,7 +44,12 @@ export default function HomePage() {
               Arquitetura, Engenharia e Inteligência Artificial para transformar terrenos em projetos reais.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Button asChild size="lg" className="bg-[#F7A71C] text-[#303030] hover:bg-[#d99116] font-sans font-semibold px-8">
+              <Button
+                asChild
+                size="lg"
+                className="text-[#303030] hover:opacity-90 font-sans font-semibold px-8"
+                style={{ backgroundColor: accentColor }}
+              >
                 <Link href="/gerador-projetos">
                   Simular Projeto
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -58,7 +70,9 @@ export default function HomePage() {
       </section>
 
       {/* Digital Innovation */}
-      <section className="py-24 bg-[#303030]">
+      {showBodySections && (
+        <>
+          <section className="py-24 bg-[#303030]">
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
@@ -93,9 +107,9 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+          </section>
 
-      {/* Before / After */}
+          {/* Before / After */}
       <section className="py-24 bg-background">
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-16 text-center">
@@ -125,25 +139,26 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
 
-      {/* CTA */}
-      <section className="py-24 bg-[#303030]">
-        <div className="mx-auto max-w-3xl px-6 text-center">
-          <h2 className="mb-6 text-3xl font-bold text-[#ffffff] md:text-4xl font-serif text-balance">
-            Transforme o seu terreno num projeto inteligente
-          </h2>
-          <p className="mb-10 text-base leading-relaxed text-[#a0a0a0] font-sans">
-            Utilize o nosso simulador de projetos com inteligência artificial para visualizar o potencial do seu terreno.
-          </p>
-          <Button asChild size="lg" className="bg-[#F7A71C] text-[#303030] hover:bg-[#d99116] font-sans font-semibold px-10">
-            <Link href="/gerador-projetos">
-              Solicitar Simulação
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      </section>
+          {/* CTA */}
+          <section className="py-24 bg-[#303030]">
+            <div className="mx-auto max-w-3xl px-6 text-center">
+              <h2 className="mb-6 text-3xl font-bold text-[#ffffff] md:text-4xl font-serif text-balance">
+                Transforme o seu terreno num projeto inteligente
+              </h2>
+              <p className="mb-10 text-base leading-relaxed text-[#a0a0a0] font-sans">
+                Utilize o nosso simulador de projetos com inteligência artificial para visualizar o potencial do seu terreno.
+              </p>
+              <Button asChild size="lg" className="bg-[#F7A71C] text-[#303030] hover:bg-[#d99116] font-sans font-semibold px-10">
+                <Link href="/gerador-projetos">
+                  Solicitar Simulação
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </section>
+        </>
+      )}
     </div>
   )
 }

@@ -2,6 +2,17 @@ import { getSessionUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { NextResponse } from 'next/server'
 
+type CheckoutRequest = {
+  planId?: string
+  paymentMethod?: string
+  cardData?: {
+    cardName?: string
+    cardNumber?: string
+    expiryDate?: string
+    cvv?: string
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const user = await getSessionUser()
@@ -9,7 +20,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Nao autenticado' }, { status: 401 })
     }
 
-    const { planId, paymentMethod } = await request.json()
+    const body = (await request.json()) as CheckoutRequest
+    const planId = typeof body.planId === 'string' ? body.planId : ''
+    const paymentMethod = typeof body.paymentMethod === 'string' ? body.paymentMethod : 'card'
+    const cardData = body.cardData ?? {}
+
+    if (!planId) {
+      return NextResponse.json({ error: 'Plano inválido' }, { status: 400 })
+    }
 
     // Get plan
     const plan = await db.getSubscriptionPlan(planId)
@@ -17,14 +35,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Plano nao encontrado' }, { status: 404 })
     }
 
+    if (paymentMethod === 'card') {
+      if (
+        !cardData.cardName ||
+        !cardData.cardNumber ||
+        !cardData.expiryDate ||
+        !cardData.cvv
+      ) {
+        return NextResponse.json({ error: 'Dados do cartão incompletos' }, { status: 400 })
+      }
+    }
+
+    const paymentMethodId = paymentMethod
+
     // Create payment transaction
     const transaction = await db.createPaymentTransaction({
       userId: user.id,
-      subscriptionId: ``, // Will be updated
+      subscriptionId: ``,
       amount: plan.price,
       currency: plan.currency,
-      status: 'completed', // In real app, check with Stripe
-      paymentMethodId: '', // Would store Stripe payment method ID
+      status: 'pending',
+      paymentMethodId,
     })
 
     // Create user subscription
@@ -41,13 +72,14 @@ export async function POST(request: Request) {
       status: 'active',
       startDate: new Date(),
       expiresAt,
+      paymentMethodId,
       autoRenew: true,
       projectsUsed: 0,
     })
 
-    // Update transaction with subscription ID
     await db.updatePaymentTransaction(transaction.id, {
       subscriptionId: subscription.id,
+      status: 'completed',
     })
 
     return NextResponse.json({

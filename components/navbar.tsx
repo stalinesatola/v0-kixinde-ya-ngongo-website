@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Menu, X, ChevronDown, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -28,7 +28,10 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [showMenu, setShowMenu] = useState(true)
   const router = useRouter()
+  const pathname = usePathname()
+  const isHomePage = pathname === '/'
 
   useEffect(() => {
     // Check if user is logged in by checking for session cookie
@@ -43,6 +46,25 @@ export function Navbar() {
     checkSession()
   }, [])
 
+  useEffect(() => {
+    if (!isHomePage) {
+      setShowMenu(true)
+      return
+    }
+
+    const fetchHomeSettings = async () => {
+      try {
+        const response = await fetch('/api/home-settings')
+        const data = await response.json()
+        setShowMenu(data?.data?.settings?.showMenu ?? true)
+      } catch (error) {
+        setShowMenu(true)
+      }
+    }
+
+    fetchHomeSettings()
+  }, [isHomePage])
+
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" })
@@ -51,6 +73,10 @@ export function Navbar() {
     } catch (error) {
       console.error("Erro ao fazer logout:", error)
     }
+  }
+
+  if (isHomePage && !showMenu) {
+    return null
   }
 
   return (
