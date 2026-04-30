@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       system: config.system_prompt || 'You are a helpful assistant for architectural projects.',
       messages: aiMessages,
       temperature: config.temperature || 0.7,
-      maxTokens: config.max_tokens || 1000,
+      maxOutputTokens: config.max_tokens || 1000,
     })
 
     return result.toUIMessageStreamResponse()

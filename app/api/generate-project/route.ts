@@ -274,6 +274,16 @@ export async function POST(req: Request) {
   let projectData: ProjectData
   try {
     const body = await req.json()
+    
+    // Validar tamanho máximo do payload (1MB)
+    const bodySize = new TextEncoder().encode(JSON.stringify(body)).length
+    if (bodySize > 1024 * 1024) {
+      return new Response(
+        JSON.stringify({ error: "Payload muito grande (máx: 1MB)" }),
+        { status: 413, headers: { "Content-Type": "application/json" } }
+      )
+    }
+    
     const parsed = projectDataSchema.safeParse(body.projectData)
     if (!parsed.success) {
       return new Response(
@@ -282,7 +292,8 @@ export async function POST(req: Request) {
       )
     }
     projectData = parsed.data
-  } catch {
+  } catch (err) {
+    console.error("[v0] Erro ao processar requisição:", err instanceof Error ? err.message : "Desconhecido")
     return new Response(
       JSON.stringify({ error: "Corpo da requisição inválido" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
@@ -294,19 +305,22 @@ export async function POST(req: Request) {
     const config = await db.getAIConfig()
 
     if (config?.is_active && config.api_key) {
-      console.log("[v0] Usando IA real — provider:", config.provider, "model:", config.model)
+      console.log("[v0] Usando IA real — provider:", config.provider, "(modelo omitido)")
 
       // Importação dinâmica dos providers do AI SDK
       let model: any
       if (config.provider === "openai") {
-        const { openai } = await import("@ai-sdk/openai")
-        model = openai(config.model || "gpt-4o-mini", { apiKey: config.api_key })
+        const { createOpenAI } = await import("@ai-sdk/openai")
+        const provider = createOpenAI({ apiKey: config.api_key })
+        model = provider(config.model || "gpt-4o-mini")
       } else if (config.provider === "anthropic") {
-        const { anthropic } = await import("@ai-sdk/anthropic")
-        model = anthropic(config.model || "claude-3-5-haiku-20241022", { apiKey: config.api_key })
+        const { createAnthropic } = await import("@ai-sdk/anthropic")
+        const provider = createAnthropic({ apiKey: config.api_key })
+        model = provider(config.model || "claude-3-5-haiku-20241022")
       } else if (config.provider === "google") {
-        const { google } = await import("@ai-sdk/google")
-        model = google(config.model || "gemini-1.5-flash", { apiKey: config.api_key })
+        const { createGoogleGenerativeAI } = await import("@ai-sdk/google")
+        const provider = createGoogleGenerativeAI({ apiKey: config.api_key })
+        model = provider(config.model || "gemini-1.5-flash")
       }
 
       if (model) {
@@ -316,7 +330,7 @@ export async function POST(req: Request) {
           system: buildSystemPrompt(),
           prompt: buildUserPrompt(projectData),
           temperature: config.temperature ?? 0.7,
-          maxTokens: config.max_tokens ?? 4000,
+          maxOutputTokens: config.max_tokens ?? 4000,
         })
 
         return result.toTextStreamResponse({
@@ -325,7 +339,8 @@ export async function POST(req: Request) {
       }
     }
   } catch (err) {
-    console.warn("[v0] IA real falhou, usando fallback:", err instanceof Error ? err.message : err)
+    const errorMsg = err instanceof Error ? err.message : "Erro desconhecido"
+    console.warn("[v0] IA real falhou, usando fallback:", errorMsg)
   }
 
   // 3. Fallback: relatório template local com streaming simulado
