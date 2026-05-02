@@ -551,10 +551,8 @@ class Database {
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       }
-", { id: config.id, isActive: config.isActive })
       return config
     } catch (error) {
-      // Error in database query config Telegram:", error)
       return null
     }
   }
