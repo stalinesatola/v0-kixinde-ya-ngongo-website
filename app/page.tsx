@@ -138,8 +138,7 @@ export default async function HomePage() {
               </div>
             </div>
           </div>
-        </div>
-
+        </div>        </section>
           {/* CTA */}
           <section className="py-24 bg-[#303030]">
             <div className="mx-auto max-w-3xl px-6 text-center">

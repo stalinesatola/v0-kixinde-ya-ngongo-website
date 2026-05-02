@@ -57,7 +57,7 @@ interface FormData {
   area: string
   perimeter: string
   dimensions: string
-  terrainShape: string
+  terrainShape: "regular" | "irregular"
   irregularSides: string
   coordinates: string
   projectType: string
@@ -485,48 +485,70 @@ export default function GeradorProjetosPage() {
     return elements
   }
 
+  // NO SUBSCRIPTION VIEW
+  if (step === "no-subscription") {
+    return (
+      <div className="pt-[73px]">
+        <section className="min-h-[calc(100vh-73px)] bg-background flex items-center justify-center px-4">
+          <div className="max-w-md text-center">
+            <div className="mb-6">
+              <MessageCircle className="h-16 w-16 mx-auto text-[#F7A71C] opacity-80" />
+            </div>
+            <h1 className="text-2xl font-bold text-foreground mb-2 font-serif">Sem Subscrição Ativa</h1>
+            <p className="text-muted-foreground mb-6 font-sans">
+              Precisa de uma subscrição ativa para gerar projectos. Escolha um plano para continuar.
+            </p>
+            <div className="flex gap-3 flex-col sm:flex-row">
+              <Button
+                onClick={() => {
+                  window.location.href = "/pricing"
+                }}
+                className="bg-[#F7A71C] text-[#303030] hover:bg-[#d99116] font-sans font-semibold flex-1"
+              >
+                Ver Planos
+              </Button>
+              <Button
+                onClick={() => {
+                  window.location.href = "/admin/dashboard"
+                }}
+                variant="outline"
+                className="border-border font-sans flex-1"
+              >
+                Voltar ao Painel
+              </Button>
+            </div>
+          </div>
+        </section>
+      </div>
+    )
+  }
+
   // GENERATING / RESULT VIEW
   if (step === "generating" || step === "result") {
     const sections = parseSections(streamContent)
 
     return (
       <div className="pt-[73px]">
-        {/* No Subscription Message */}
-        {step === "no-subscription" && (
-          <section className="min-h-[calc(100vh-73px)] bg-background flex items-center justify-center px-4">
-            <div className="max-w-md text-center">
-              <div className="mb-6">
-                <MessageCircle className="h-16 w-16 mx-auto text-[#F7A71C] opacity-80" />
-              </div>
-              <h1 className="text-2xl font-bold text-foreground mb-2 font-serif">Sem Subscrição Ativa</h1>
-              <p className="text-muted-foreground mb-6 font-sans">
-                Precisa de uma subscrição ativa para gerar projectos. Escolha um plano para continuar.
-              </p>
-              <div className="flex gap-3 flex-col sm:flex-row">
-                <Button
-                  onClick={() => {
-                    window.location.href = "/pricing"
-                  }}
-                  className="bg-[#F7A71C] text-[#303030] hover:bg-[#d99116] font-sans font-semibold flex-1"
-                >
-                  Ver Planos
-                </Button>
-                <Button
-                  onClick={() => {
-                    window.location.href = "/admin/dashboard"
-                  }}
-                  variant="outline"
-                  className="border-border font-sans flex-1"
-                >
-                  Voltar ao Painel
-                </Button>
-              </div>
+        {/* Top bar */}
+        <section className="border-b border-border bg-background sticky top-[73px] z-40">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+            <button onClick={handleReset} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors font-sans">
+              <ArrowLeft className="h-4 w-4" />
+              Nova Simulacao
+            </button>
+            <div className="flex items-center gap-3">
+              {isStreaming && (
+                <div className="flex items-center gap-2 text-sm text-[#F7A71C] font-sans">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  A gerar projecto...
+                </div>
+              )}
+              {!isStreaming && step === "result" && (
+                <span className="text-sm font-medium text-[#F7A71C] font-sans">Projecto gerado</span>
+              )}
             </div>
-          </section>
-        )}
-
-        {step !== "no-subscription" && (
-        <>
+          </div>
+        </section>
         {/* Top bar */}
         <section className="border-b border-border bg-background sticky top-[73px] z-40">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
@@ -634,7 +656,30 @@ export default function GeradorProjetosPage() {
                   </p>
                 </div>
                 <div className="rounded-lg overflow-hidden border border-border bg-card" style={{ height: '600px' }}>
-                  <Project3DViewerWrapper projectData={formData} />
+                  <Project3DViewerWrapper projectData={{
+                    projectName: projectName || `${formData.projectType}${formData.projectSubType ? ` - ${formData.projectSubType}` : ""} ${formData.style ? `(${formData.style})` : ""}`,
+                    projectType: formData.projectType,
+                    projectSubType: formData.projectSubType,
+                    location: formData.location,
+                    area: parseFloat(formData.area) || 0,
+                    perimeter: parseFloat(formData.perimeter) || 0,
+                    terrainShape: formData.terrainShape,
+                    clientName: formData.name,
+                    clientEmail: formData.email,
+                    clientPhone: formData.phone,
+                    architecturalStyle: formData.style,
+                    floors: parseInt(formData.floors) || 1,
+                    bedrooms: parseInt(formData.bedrooms) || 0,
+                    bathrooms: parseInt(formData.bathrooms) || 0,
+                    parking: parseInt(formData.parking) || 0,
+                    terrain: {
+                      dimensions: formData.dimensions,
+                      coordinates: formData.coordinates,
+                      irregularData: formData.irregularSides ? { sides: formData.irregularSides } : undefined
+                    },
+                    generatedContent: streamContent,
+                    status: "generated" as const
+                  }} />
                 </div>
               </div>
             )}
@@ -668,8 +713,6 @@ export default function GeradorProjetosPage() {
             )}
           </div>
         </section>
-        </>
-        )}
       </div>
     )
   }
@@ -818,16 +861,6 @@ export default function GeradorProjetosPage() {
                       </div>
                     )}
 
-                    {formData.irregularSides && formData.terrainShape === "irregular" && (
-                      <div className="flex flex-col gap-1.5 p-4 rounded-lg bg-background border border-border">
-                        <Label className="text-xs font-medium text-muted-foreground font-sans">Numero de Lados</Label>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-bold text-foreground font-serif">{formData.irregularSides.split(/[,;]/).filter(s => s.trim()).length}</span>
-                          <span className="text-sm font-medium text-muted-foreground font-sans">lados</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1 font-sans">Terreno irregular</p>
-                      </div>
-                    )}
                   </div>
 
                   {formData.terrainShape === "regular" && formData.area && (
@@ -847,13 +880,25 @@ export default function GeradorProjetosPage() {
                     </div>
                   )}
 
-                  {formData.terrainShape === "irregular" && !formData.area && (
-                    <div className="mt-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                      <p className="text-sm text-blue-700 dark:text-blue-300 font-sans">
-                        <strong>Nota:</strong> Para terrenos irregulares, insira a area manualmente abaixo. O perimetro ({formData.perimeter}m) foi calculado somando todos os lados.
-                      </p>
-                    </div>
-                  )}
+                </div>
+              )}
+
+              {formData.terrainShape === "irregular" && !formData.area && (
+                <div className="mt-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                  <p className="text-sm text-blue-700 dark:text-blue-300 font-sans">
+                    <strong>Nota:</strong> Para terrenos irregulares, insira a area manualmente abaixo. O perimetro ({formData.perimeter}m) foi calculado somando todos os lados.
+                  </p>
+                </div>
+              )}
+
+              {formData.irregularSides && formData.terrainShape === "irregular" && (
+                <div className="flex flex-col gap-1.5 p-4 rounded-lg bg-background border border-border">
+                  <Label className="text-xs font-medium text-muted-foreground font-sans">Numero de Lados</Label>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-foreground font-serif">{formData.irregularSides.split(/[,;]/).filter(s => s.trim()).length}</span>
+                    <span className="text-sm font-medium text-muted-foreground font-sans">lados</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 font-sans">Terreno irregular</p>
                 </div>
               )}
 
