@@ -157,7 +157,7 @@ class Database {
       if (error) return null
       return data as Project
     } catch (error) {
-      // Error in database query projecto:", error)
+      
       return null
     }
   }
@@ -173,7 +173,7 @@ class Database {
       if (error) return []
       return data as Project[]
     } catch (error) {
-      // Error in database query projectos do utilizador:", error)
+      
       return []
     }
   }
@@ -225,7 +225,7 @@ class Database {
       if (error) return null
       return data as Subscription
     } catch (error) {
-      // Error in database query subscrição:", error)
+      
       return null
     }
   }
@@ -266,7 +266,7 @@ class Database {
       if (error) return []
       return data as SubscriptionPlan[]
     } catch (error) {
-      // Error in database query planos:", error)
+      
       return []
     }
   }
@@ -283,7 +283,7 @@ class Database {
       if (error) return null
       return data as SubscriptionPlan
     } catch (error) {
-      // Error in database query plano:", error)
+      
       return null
     }
   }
@@ -354,7 +354,7 @@ class Database {
 
       return data as UserSubscription
     } catch (error) {
-      // Error in database query subscrição do utilizador:", error)
+      
       return null
     }
   }
@@ -416,7 +416,7 @@ class Database {
       if (error) return []
       return data as PaymentMethod[]
     } catch (error) {
-      // Error in database query métodos de pagamento:", error)
+      
       return []
     }
   }
@@ -433,7 +433,7 @@ class Database {
       if (error) return null
       return data as PaymentMethod
     } catch (error) {
-      // Error in database query método de pagamento:", error)
+      
       return null
     }
   }
@@ -498,7 +498,7 @@ class Database {
       if (error) return []
       return data as PaymentTransaction[]
     } catch (error) {
-      // Error in database query transações de pagamento:", error)
+      
       return []
     }
   }
@@ -649,7 +649,7 @@ class Database {
       if (error) return []
       return data as ProjectLog[]
     } catch (error) {
-      // Error in database query logs:", error)
+      
       return []
     }
   }
@@ -724,7 +724,7 @@ class Database {
 
       return data as Session
     } catch (error) {
-      // Error in database query sessão:", error)
+      
       return null
     }
   }
@@ -784,7 +784,7 @@ class Database {
  do Supabase")
       return data
     } catch (error) {
-      // Error in database query config IA:", error)
+      
       return null
     }
   }
@@ -806,14 +806,11 @@ class Database {
       }
 
       if (!data) {
-   após inserir")
         throw new Error("No data returned from insert")
       }
 
-", data.id)
       return data
     } catch (error) {
- criar config IA:", error instanceof Error ? error.message : String(error))
       throw error
     }
   }
@@ -830,19 +827,15 @@ class Database {
         .single()
 
       if (error) {
-   atualizar config IA:", error.message, error.code)
         throw new Error(`Supabase error: ${error.message}`)
       }
 
       if (!data) {
-   após atualizar")
         throw new Error("No data returned from update")
       }
 
-", data.id)
       return data
     } catch (error) {
- atualizar config IA:", error instanceof Error ? error.message : String(error))
       throw error
     }
   }
@@ -863,10 +856,8 @@ class Database {
         .single()
 
       if (error) throw error
-", conv.id)
       return conv
     } catch (error) {
-      console.error("[v0] Erro ao criar conversa:", error)
       throw error
     }
   }
@@ -884,7 +875,7 @@ class Database {
       if (error) throw error
       return data || []
     } catch (error) {
-      // Error in database query conversas:", error)
+      
       return []
     }
   }
@@ -921,7 +912,7 @@ class Database {
       if (error) throw error
       return data || []
     } catch (error) {
-      // Error in database query mensagens:", error)
+      
       return []
     }
   }
