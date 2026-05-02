@@ -43,7 +43,6 @@ export async function POST(request: Request) {
 
     return response
   } catch (error) {
-    console.error("[v0] Erro no POST /api/auth/login:", error)
     const errorId = errorLogger.error(
       "Login API Error",
       { endpoint: "/api/auth/login" },

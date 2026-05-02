@@ -13,7 +13,6 @@ export async function getSessionUser() {
     const user = await db.getUser(userId)
     return user
   } catch (error) {
-    console.error("[v0] Erro ao obter sessao:", error)
     return null
   }
 }

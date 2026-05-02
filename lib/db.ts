@@ -36,7 +36,6 @@ class Database {
       if (error) return null
       return data as User
     } catch (error) {
-      console.error("[v0] Erro ao obter utilizador:", error)
       return null
     }
   }
@@ -53,7 +52,6 @@ class Database {
       if (error) return null
       return data as User
     } catch (error) {
-      console.error("[v0] Erro ao obter utilizador por email:", error)
       return null
     }
   }
@@ -77,7 +75,6 @@ class Database {
       if (error) throw error
       return data as User
     } catch (error) {
-      console.error("[v0] Erro ao criar utilizador:", error)
       throw error
     }
   }
@@ -98,7 +95,6 @@ class Database {
       if (error) return null
       return data as User
     } catch (error) {
-      console.error("[v0] Erro ao atualizar utilizador:", error)
       return null
     }
   }
@@ -111,7 +107,6 @@ class Database {
       if (error) return []
       return data as User[]
     } catch (error) {
-      console.error("[v0] Erro ao obter utilizadores:", error)
       return []
     }
   }
@@ -145,7 +140,7 @@ class Database {
 
       return data as Project
     } catch (error) {
-      console.error("[v0] Erro ao criar projecto:", error)
+
       throw error
     }
   }
@@ -162,7 +157,7 @@ class Database {
       if (error) return null
       return data as Project
     } catch (error) {
-      console.error("[v0] Erro ao obter projecto:", error)
+      // Error in database query projecto:", error)
       return null
     }
   }
@@ -178,7 +173,7 @@ class Database {
       if (error) return []
       return data as Project[]
     } catch (error) {
-      console.error("[v0] Erro ao obter projectos do utilizador:", error)
+      // Error in database query projectos do utilizador:", error)
       return []
     }
   }
@@ -230,7 +225,7 @@ class Database {
       if (error) return null
       return data as Subscription
     } catch (error) {
-      console.error("[v0] Erro ao obter subscrição:", error)
+      // Error in database query subscrição:", error)
       return null
     }
   }
@@ -271,7 +266,7 @@ class Database {
       if (error) return []
       return data as SubscriptionPlan[]
     } catch (error) {
-      console.error("[v0] Erro ao obter planos:", error)
+      // Error in database query planos:", error)
       return []
     }
   }
@@ -288,7 +283,7 @@ class Database {
       if (error) return null
       return data as SubscriptionPlan
     } catch (error) {
-      console.error("[v0] Erro ao obter plano:", error)
+      // Error in database query plano:", error)
       return null
     }
   }
@@ -359,7 +354,7 @@ class Database {
 
       return data as UserSubscription
     } catch (error) {
-      console.error("[v0] Erro ao obter subscrição do utilizador:", error)
+      // Error in database query subscrição do utilizador:", error)
       return null
     }
   }
@@ -421,7 +416,7 @@ class Database {
       if (error) return []
       return data as PaymentMethod[]
     } catch (error) {
-      console.error("[v0] Erro ao obter métodos de pagamento:", error)
+      // Error in database query métodos de pagamento:", error)
       return []
     }
   }
@@ -438,7 +433,7 @@ class Database {
       if (error) return null
       return data as PaymentMethod
     } catch (error) {
-      console.error("[v0] Erro ao obter método de pagamento:", error)
+      // Error in database query método de pagamento:", error)
       return null
     }
   }
@@ -503,7 +498,7 @@ class Database {
       if (error) return []
       return data as PaymentTransaction[]
     } catch (error) {
-      console.error("[v0] Erro ao obter transações de pagamento:", error)
+      // Error in database query transações de pagamento:", error)
       return []
     }
   }
@@ -543,7 +538,7 @@ class Database {
         .single()
 
       if (error) {
-        console.log("[v0] Nenhuma configuração Telegram encontrada:", error.message)
+  ", error.message)
         return null
       }
 
@@ -556,10 +551,10 @@ class Database {
         createdAt: data.created_at,
         updatedAt: data.updated_at,
       }
-      console.log("[v0] Config Telegram obtida:", { id: config.id, isActive: config.isActive })
+", { id: config.id, isActive: config.isActive })
       return config
     } catch (error) {
-      console.error("[v0] Erro ao obter config Telegram:", error)
+      // Error in database query config Telegram:", error)
       return null
     }
   }
@@ -583,7 +578,7 @@ class Database {
         .single()
 
       if (error) {
-        console.error("[v0] Erro Supabase ao criar config Telegram:", error.message)
+   criar config Telegram:", error.message)
         throw error
       }
       
@@ -597,7 +592,7 @@ class Database {
         updatedAt: data.updated_at,
       }
     } catch (error) {
-      console.error("[v0] Exceção ao criar config Telegram:", error instanceof Error ? error.message : String(error))
+ criar config Telegram:", error instanceof Error ? error.message : String(error))
       throw error
     }
   }
@@ -622,7 +617,7 @@ class Database {
         .single()
 
       if (error) {
-        console.error("[v0] Erro Supabase ao atualizar config Telegram:", error.message)
+   atualizar config Telegram:", error.message)
         throw error
       }
       
@@ -636,7 +631,7 @@ class Database {
         updatedAt: data.updated_at,
       }
     } catch (error) {
-      console.error("[v0] Exceção ao atualizar config Telegram:", error instanceof Error ? error.message : String(error))
+ atualizar config Telegram:", error instanceof Error ? error.message : String(error))
       throw error
     }
   }
@@ -656,7 +651,7 @@ class Database {
       if (error) return []
       return data as ProjectLog[]
     } catch (error) {
-      console.error("[v0] Erro ao obter logs:", error)
+      // Error in database query logs:", error)
       return []
     }
   }
@@ -731,7 +726,7 @@ class Database {
 
       return data as Session
     } catch (error) {
-      console.error("[v0] Erro ao obter sessão:", error)
+      // Error in database query sessão:", error)
       return null
     }
   }
@@ -784,21 +779,21 @@ class Database {
         .single()
 
       if (error) {
-        console.log("[v0] Nenhuma config IA ativa encontrada")
+   ativa encontrada")
         return null
       }
 
-      console.log("[v0] Config IA recuperada do Supabase")
+ do Supabase")
       return data
     } catch (error) {
-      console.error("[v0] Erro ao obter config IA:", error)
+      // Error in database query config IA:", error)
       return null
     }
   }
 
   async createAIConfig(config: any): Promise<any> {
     try {
-      console.log("[v0] createAIConfig iniciando com config:", JSON.stringify(config))
+ com config:", JSON.stringify(config))
       const supabase = this.getSupabase()
 
       const { data, error } = await supabase
@@ -808,19 +803,19 @@ class Database {
         .single()
 
       if (error) {
-        console.error("[v0] Erro Supabase ao criar config IA:", error.message, error.code)
+   criar config IA:", error.message, error.code)
         throw new Error(`Supabase error: ${error.message}`)
       }
 
       if (!data) {
-        console.error("[v0] Nenhum dado retornado após inserir")
+   após inserir")
         throw new Error("No data returned from insert")
       }
 
-      console.log("[v0] Config IA criada no Supabase com ID:", data.id)
+", data.id)
       return data
     } catch (error) {
-      console.error("[v0] Exceção ao criar config IA:", error instanceof Error ? error.message : String(error))
+ criar config IA:", error instanceof Error ? error.message : String(error))
       throw error
     }
   }
@@ -837,19 +832,19 @@ class Database {
         .single()
 
       if (error) {
-        console.error("[v0] Erro Supabase ao atualizar config IA:", error.message, error.code)
+   atualizar config IA:", error.message, error.code)
         throw new Error(`Supabase error: ${error.message}`)
       }
 
       if (!data) {
-        console.error("[v0] Nenhum dado retornado após atualizar")
+   após atualizar")
         throw new Error("No data returned from update")
       }
 
-      console.log("[v0] Config IA atualizada no Supabase com ID:", data.id)
+", data.id)
       return data
     } catch (error) {
-      console.error("[v0] Exceção ao atualizar config IA:", error instanceof Error ? error.message : String(error))
+ atualizar config IA:", error instanceof Error ? error.message : String(error))
       throw error
     }
   }
@@ -870,7 +865,7 @@ class Database {
         .single()
 
       if (error) throw error
-      console.log("[v0] Conversa criada:", conv.id)
+", conv.id)
       return conv
     } catch (error) {
       console.error("[v0] Erro ao criar conversa:", error)
@@ -891,7 +886,7 @@ class Database {
       if (error) throw error
       return data || []
     } catch (error) {
-      console.error("[v0] Erro ao obter conversas:", error)
+      // Error in database query conversas:", error)
       return []
     }
   }
@@ -928,7 +923,7 @@ class Database {
       if (error) throw error
       return data || []
     } catch (error) {
-      console.error("[v0] Erro ao obter mensagens:", error)
+      // Error in database query mensagens:", error)
       return []
     }
   }
