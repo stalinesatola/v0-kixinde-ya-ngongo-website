@@ -538,17 +538,26 @@ class Database {
       const { data, error } = await supabase
         .from("telegram_config")
         .select("*")
-        .order("createdAt", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(1)
         .single()
 
       if (error) {
-        console.log("[v0] Nenhuma configuração Telegram encontrada")
+        console.log("[v0] Nenhuma configuração Telegram encontrada:", error.message)
         return null
       }
 
-      console.log("[v0] Config Telegram obtida:", { id: data.id, isActive: data.isActive })
-      return data as TelegramConfig
+      // Convert snake_case DB columns to camelCase for app use
+      const config: TelegramConfig = {
+        id: data.id,
+        botToken: data.bot_token,
+        chatId: data.chat_id,
+        isActive: data.is_active,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      }
+      console.log("[v0] Config Telegram obtida:", { id: config.id, isActive: config.isActive })
+      return config
     } catch (error) {
       console.error("[v0] Erro ao obter config Telegram:", error)
       return null
@@ -564,10 +573,11 @@ class Database {
         .from("telegram_config")
         .insert([{
           id,
-          ...config,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          bot_token: config.botToken,
+          chat_id: config.chatId,
+          is_active: config.isActive ?? true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         }])
         .select()
         .single()
@@ -576,7 +586,16 @@ class Database {
         console.error("[v0] Erro Supabase ao criar config Telegram:", error.message)
         throw error
       }
-      return data as TelegramConfig
+      
+      // Convert snake_case to camelCase
+      return {
+        id: data.id,
+        botToken: data.bot_token,
+        chatId: data.chat_id,
+        isActive: data.is_active,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      }
     } catch (error) {
       console.error("[v0] Exceção ao criar config Telegram:", error instanceof Error ? error.message : String(error))
       throw error
@@ -586,12 +605,18 @@ class Database {
   async updateTelegramConfig(id: string, updates: Partial<TelegramConfig>): Promise<TelegramConfig | null> {
     try {
       const supabase = this.getSupabase()
+      
+      // Convert camelCase to snake_case for DB
+      const dbUpdates: Record<string, any> = {
+        updated_at: new Date().toISOString(),
+      }
+      if (updates.botToken !== undefined) dbUpdates.bot_token = updates.botToken
+      if (updates.chatId !== undefined) dbUpdates.chat_id = updates.chatId
+      if (updates.isActive !== undefined) dbUpdates.is_active = updates.isActive
+      
       const { data, error } = await supabase
         .from("telegram_config")
-        .update({
-          ...updates,
-          updatedAt: new Date().toISOString(),
-        })
+        .update(dbUpdates)
         .eq("id", id)
         .select()
         .single()
@@ -600,7 +625,16 @@ class Database {
         console.error("[v0] Erro Supabase ao atualizar config Telegram:", error.message)
         throw error
       }
-      return data as TelegramConfig
+      
+      // Convert snake_case to camelCase
+      return {
+        id: data.id,
+        botToken: data.bot_token,
+        chatId: data.chat_id,
+        isActive: data.is_active,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+      }
     } catch (error) {
       console.error("[v0] Exceção ao atualizar config Telegram:", error instanceof Error ? error.message : String(error))
       throw error
