@@ -37,19 +37,25 @@ export function Navbar() {
         const response = await fetch("/api/auth/user")
         setIsLoggedIn(response.ok)
       } catch (error) {
+        // Network error - user is not logged in
         setIsLoggedIn(false)
       }
     }
     checkSession()
   }, [])
 
-  const handleLogout = async () => {
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault()
     try {
-      await fetch("/api/auth/logout", { method: "POST" })
+      const response = await fetch("/api/auth/logout", { method: "POST" })
+      if (response.ok) {
+        setIsLoggedIn(false)
+        router.push("/")
+      }
+    } catch (error) {
+      // Continue with navigation even if logout request fails
       setIsLoggedIn(false)
       router.push("/")
-    } catch (error) {
-      console.error("Erro ao fazer logout:", error)
     }
   }
 

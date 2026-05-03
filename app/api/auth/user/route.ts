@@ -24,7 +24,6 @@ export async function GET() {
       })
     )
   } catch (error) {
-    console.error("[v0] Error getting user:", error)
     return NextResponse.json(
       createErrorResponse("Error getting user", 500),
       { status: 500 }
