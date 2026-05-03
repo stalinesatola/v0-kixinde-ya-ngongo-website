@@ -538,7 +538,6 @@ class Database {
         .single()
 
       if (error) {
-  ", error.message)
         return null
       }
 
