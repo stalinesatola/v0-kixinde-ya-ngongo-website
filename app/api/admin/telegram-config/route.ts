@@ -13,7 +13,7 @@ export async function GET() {
     if (!user || user.role !== 'admin') {
       console.log('[v0] Acesso negado - não é admin')
       return NextResponse.json(
-        createErrorResponse('Não autorizado', 403),
+        createErrorResponse('Não autorizado', 'UNAUTHORIZED'),
         { status: 403 }
       )
     }
@@ -30,7 +30,7 @@ export async function GET() {
       error instanceof Error ? error : new Error(String(error))
     )
     return NextResponse.json(
-      createErrorResponse('Erro ao obter configuração', 500, errorId),
+      createErrorResponse('Erro ao obter configuração', 'INTERNAL_ERROR', errorId),
       { status: 500 }
     )
   }
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     if (!user) {
       console.log('[v0] Erro: utilizador não autenticado (null)')
       return NextResponse.json(
-        createErrorResponse('Utilizador não autenticado', 401),
+        createErrorResponse('Utilizador não autenticado', 'UNAUTHENTICATED'),
         { status: 401 }
       )
     }
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     if (user.role !== 'admin') {
       console.log('[v0] Erro: utilizador não é admin. Role atual:', user.role)
       return NextResponse.json(
-        createErrorResponse('Apenas administradores podem fazer isto', 403),
+        createErrorResponse('Apenas administradores podem fazer isto', 'FORBIDDEN'),
         { status: 403 }
       )
     }
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     if (!data.botToken || !data.chatId) {
       console.log('[v0] Erro: botToken ou chatId faltando')
       return NextResponse.json(
-        createErrorResponse('Bot Token e Chat ID são obrigatórios', 400),
+        createErrorResponse('Bot Token e Chat ID são obrigatórios', 'VALIDATION_ERROR'),
         { status: 400 }
       )
     }
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
     if (!config) {
       console.error('[v0] Erro crítico: config é null após save')
       return NextResponse.json(
-        createErrorResponse('Erro ao guardar configuração', 500),
+        createErrorResponse('Erro ao guardar configuração', 'SAVE_FAILED'),
         { status: 500 }
       )
     }
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
       error instanceof Error ? error : new Error(String(error))
     )
     return NextResponse.json(
-      createErrorResponse('Erro ao salvar configuração', 500, errorId),
+      createErrorResponse('Erro ao salvar configuração', 'INTERNAL_ERROR', errorId),
       { status: 500 }
     )
   }

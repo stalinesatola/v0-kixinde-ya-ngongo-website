@@ -10,7 +10,7 @@ export async function GET() {
     const user = await getSessionUser()
     if (!user) {
       return NextResponse.json(
-        createErrorResponse("Não autenticado", 401),
+        createErrorResponse("Não autenticado", 'UNAUTHENTICATED'),
         { status: 401 }
       )
     }
@@ -33,7 +33,7 @@ export async function GET() {
       error instanceof Error ? error : new Error(String(error))
     )
     return NextResponse.json(
-      createErrorResponse("Erro ao verificar subscrição", 500, errorId),
+      createErrorResponse("Erro ao verificar subscrição", 'INTERNAL_ERROR', errorId),
       { status: 500 }
     )
   }

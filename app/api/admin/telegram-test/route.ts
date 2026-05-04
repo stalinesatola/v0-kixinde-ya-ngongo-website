@@ -11,7 +11,7 @@ export async function POST() {
     
     if (!user || user.role !== 'admin') {
       return NextResponse.json(
-        createErrorResponse('Não autorizado', 403),
+        createErrorResponse('Não autorizado', 'UNAUTHORIZED'),
         { status: 403 }
       )
     }
@@ -20,14 +20,14 @@ export async function POST() {
     const config = await db.getTelegramConfig()
     if (!config) {
       return NextResponse.json(
-        createErrorResponse('Telegram não está configurado. Por favor, configure o Bot Token e Chat ID primeiro.', 400),
+        createErrorResponse('Telegram não está configurado. Por favor, configure o Bot Token e Chat ID primeiro.', 'NOT_CONFIGURED'),
         { status: 400 }
       )
     }
 
     if (!config.isActive) {
       return NextResponse.json(
-        createErrorResponse('Telegram está desativado. Ative a opção "Ativar Telegram" para enviar notificações.', 400),
+        createErrorResponse('Telegram está desativado. Ative a opção "Ativar Telegram" para enviar notificações.', 'DISABLED'),
         { status: 400 }
       )
     }
@@ -48,7 +48,7 @@ Se você vê esta mensagem, tudo está funcionando corretamente!
       return NextResponse.json(createSuccessResponse({ message: 'Mensagem de teste enviada com sucesso' }))
     } else {
       return NextResponse.json(
-        createErrorResponse('Erro ao enviar mensagem de teste. Verifique Bot Token e Chat ID. Consulte os logs para mais detalhes.', 500),
+        createErrorResponse('Erro ao enviar mensagem de teste. Verifique Bot Token e Chat ID. Consulte os logs para mais detalhes.', 'SEND_FAILED'),
         { status: 500 }
       )
     }
@@ -59,7 +59,7 @@ Se você vê esta mensagem, tudo está funcionando corretamente!
       error instanceof Error ? error : new Error(String(error))
     )
     return NextResponse.json(
-      createErrorResponse('Erro ao enviar teste', 500, errorId),
+      createErrorResponse('Erro ao enviar teste', 'INTERNAL_ERROR', errorId),
       { status: 500 }
     )
   }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Plus, FolderOpen, CreditCard, MessageCircle, Zap } from "lucide-react"
+import { Plus, FolderOpen, CreditCard, MessageCircle, Zap, Box } from "lucide-react"
 import { AdminHeader } from "@/components/admin-header"
 
 export const dynamic = 'force-dynamic'
@@ -76,6 +76,14 @@ export default function DashboardPage() {
             >
               <MessageCircle className="w-4 h-4 mr-2" />
               Telegram
+            </Button>
+            <Button
+              onClick={() => router.push('/admin/home-settings')}
+              variant="outline"
+              className="border-border hover:bg-secondary font-sans"
+            >
+              <Box className="w-4 h-4 mr-2" />
+              Home Page
             </Button>
             <Button
               onClick={() => router.push("/admin/subscription-plans")}

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { useNotification } from "@/hooks/useNotification"
 import { errorLogger } from "@/lib/error-logger"
 import { fetchJson } from "@/lib/fetch-wrapper"
+import type { ApiResponse } from "@/lib/api-response"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -22,10 +23,10 @@ export default function LoginPage() {
     const toastId = notify.loading("A fazer login...")
 
     try {
-      const data = await fetchJson("/api/auth/login", {
+      const data: any = await fetchJson("/api/auth/login", {
         method: "POST",
         body: JSON.stringify({ email, password }),
-      })
+      }) as ApiResponse<{ user: { id: string; email: string; name: string; role: string } }>
 
       notify.dismiss(toastId)
 

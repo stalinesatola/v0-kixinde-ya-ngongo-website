@@ -9,7 +9,7 @@ export async function POST(request: Request) {
 
     if (!email || !password) {
       return NextResponse.json(
-        createErrorResponse("Email e senha são obrigatórios", 400),
+        createErrorResponse("Email e senha são obrigatórios", 'VALIDATION_ERROR'),
         { status: 400 }
       )
     }
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
     if (!user) {
       return NextResponse.json(
-        createErrorResponse("Email ou senha inválidos", 401),
+        createErrorResponse("Email ou senha inválidos", 'AUTHENTICATION_FAILED'),
         { status: 401 }
       )
     }
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       error instanceof Error ? error : new Error(String(error))
     )
     return NextResponse.json(
-      createErrorResponse("Erro ao fazer login", 500, errorId),
+      createErrorResponse("Erro ao fazer login", 'INTERNAL_ERROR', errorId),
       { status: 500 }
     )
   }

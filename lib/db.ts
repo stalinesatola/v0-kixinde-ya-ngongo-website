@@ -1,4 +1,4 @@
-import { User, Project, Subscription, ProjectLog, Session, SubscriptionPlan, PaymentMethod, UserSubscription, PaymentTransaction, TelegramConfig } from "./types"
+import { User, Project, Subscription, ProjectLog, Session, SubscriptionPlan, PaymentMethod, UserSubscription, PaymentTransaction, TelegramConfig, HomePageSettings } from "./types"
 import crypto from "crypto"
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
 import { promisify } from "util"
@@ -836,6 +836,76 @@ class Database {
       return data
     } catch (error) {
       throw error
+    }
+  }
+
+  async getHomePageSettings(): Promise<HomePageSettings | null> {
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("home_page_settings")
+        .select("*")
+        .order("createdAt", { ascending: false })
+        .limit(1)
+        .single()
+
+      if (error) {
+        console.log("[v0] Nenhuma configuração de página inicial encontrada")
+        return null
+      }
+      return data as HomePageSettings
+    } catch (error) {
+      console.error("[v0] Erro ao obter configuração da página inicial:", error)
+      return null
+    }
+  }
+
+  async createHomePageSettings(settings: Omit<HomePageSettings, "id" | "createdAt" | "updatedAt">): Promise<HomePageSettings> {
+    try {
+      const supabase = this.getSupabase()
+      const id = crypto.randomUUID()
+      const now = new Date().toISOString()
+
+      const { data, error } = await supabase
+        .from("home_page_settings")
+        .insert([{
+          id,
+          ...settings,
+          createdAt: now,
+          updatedAt: now,
+        }])
+        .select()
+        .single()
+
+      if (error) throw error
+      return data as HomePageSettings
+    } catch (error) {
+      console.error("[v0] Erro ao criar configuração da página inicial:", error)
+      throw error
+    }
+  }
+
+  async updateHomePageSettings(id: string, updates: Partial<HomePageSettings>): Promise<HomePageSettings | null> {
+    try {
+      const supabase = this.getSupabase()
+      const { data, error } = await supabase
+        .from("home_page_settings")
+        .update({
+          ...updates,
+          updatedAt: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error("[v0] Erro ao atualizar configuração da página inicial:", error)
+        return null
+      }
+      return data as HomePageSettings
+    } catch (error) {
+      console.error("[v0] Exceção ao atualizar configuração da página inicial:", error)
+      return null
     }
   }
 

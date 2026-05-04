@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Menu, X, ChevronDown, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -28,7 +28,10 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [showMenu, setShowMenu] = useState(true)
   const router = useRouter()
+  const pathname = usePathname()
+  const isHomePage = pathname === '/'
 
   useEffect(() => {
     // Check if user is logged in by checking for session cookie
@@ -57,6 +60,10 @@ export function Navbar() {
       setIsLoggedIn(false)
       router.push("/")
     }
+  }
+
+  if (isHomePage && !showMenu) {
+    return null
   }
 
   return (

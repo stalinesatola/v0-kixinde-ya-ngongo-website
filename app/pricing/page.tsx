@@ -12,11 +12,20 @@ export default function PricingPage() {
   const router = useRouter()
   const [plans, setPlans] = useState<SubscriptionPlan[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [processingId, setProcessingId] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   useEffect(() => {
     fetchPlans()
+    const searchParams = new URLSearchParams(window.location.search)
+    if (searchParams.get('success') === 'true') {
+      const subscriptionId = searchParams.get('subscriptionId')
+      setSuccessMessage(
+        subscriptionId
+          ? `Subscrição criada com sucesso! ID: ${subscriptionId}`
+          : 'Subscrição criada com sucesso!'
+      )
+    }
   }, [])
 
   const fetchPlans = async () => {
@@ -60,6 +69,12 @@ export default function PricingPage() {
     <div className="min-h-screen bg-background pt-[73px]">
       <div className="mx-auto max-w-7xl px-6 py-16">
         {/* Header */}
+        {successMessage ? (
+          <div className="mb-10 rounded-3xl border border-green-400/30 bg-green-500/10 p-6 text-center">
+            <p className="text-green-900 font-semibold font-sans">{successMessage}</p>
+          </div>
+        ) : null}
+
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 font-serif">
             Planos de Subscrição

@@ -13,7 +13,7 @@ export async function GET() {
     if (!user || user.role !== 'admin') {
       console.log('[v0] Acesso negado - não é admin')
       return NextResponse.json(
-        createErrorResponse('Não autorizado', 403),
+        createErrorResponse('Não autorizado', 'UNAUTHORIZED'),
         { status: 403 }
       )
     }
@@ -30,7 +30,7 @@ export async function GET() {
       error instanceof Error ? error : new Error(String(error))
     )
     return NextResponse.json(
-      createErrorResponse('Erro ao obter configuração', 500, errorId),
+      createErrorResponse('Erro ao obter configuração', 'INTERNAL_ERROR', errorId),
       { status: 500 }
     )
   }
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     if (!user || user.role !== 'admin') {
       console.log('[v0] Acesso negado - não é admin')
       return NextResponse.json(
-        createErrorResponse('Não autorizado', 403),
+        createErrorResponse('Não autorizado', 'UNAUTHORIZED'),
         { status: 403 }
       )
     }
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     if (!data.provider || !data.model) {
       console.log('[v0] Erro: provider ou model faltando')
       return NextResponse.json(
-        createErrorResponse('Provider e Model são obrigatórios', 400),
+        createErrorResponse('Provider e Model são obrigatórios', 'VALIDATION_ERROR'),
         { status: 400 }
       )
     }
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
     if (!config) {
       console.error('[v0] Erro crítico: config é null após save')
       return NextResponse.json(
-        createErrorResponse('Erro ao guardar configuração', 500),
+        createErrorResponse('Erro ao guardar configuração', 'INTERNAL_ERROR'),
         { status: 500 }
       )
     }
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
       error instanceof Error ? error : new Error(String(error))
     )
     return NextResponse.json(
-      createErrorResponse('Erro ao salvar configuração', 500, errorId),
+      createErrorResponse('Erro ao salvar configuração', 'INTERNAL_ERROR', errorId),
       { status: 500 }
     )
   }

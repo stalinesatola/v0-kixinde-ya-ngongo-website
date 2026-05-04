@@ -20,7 +20,8 @@ function House({ bedrooms = 3, bathrooms = 2, floors = 1 }) {
   const floorHeight = 3
   const width = 8
   const depth = 10
-  const totalHeight = floorHeight * parseInt(floors || "1")
+  const normalizedFloors = typeof floors === 'string' ? parseInt(floors, 10) || 1 : floors
+  const totalHeight = floorHeight * normalizedFloors
 
   return (
     <group>
@@ -31,7 +32,7 @@ function House({ bedrooms = 3, bathrooms = 2, floors = 1 }) {
       </mesh>
 
       {/* Paredes */}
-      {Array.from({ length: parseInt(floors || "1") }).map((_, floorIdx) => {
+      {Array.from({ length: normalizedFloors }).map((_, floorIdx) => {
         const yPos = floorIdx * floorHeight
         return (
           <group key={`floor-${floorIdx}`}>

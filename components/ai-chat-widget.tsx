@@ -15,9 +15,10 @@ interface AIChatWidgetProps {
 export function AIChatWidget({ isOpen, onClose }: AIChatWidgetProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [conversationId] = useState<string>('')
+  const [chatInput, setChatInput] = useState<string>('')
 
   // useChat hook MUST be called at top level unconditionally
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+  const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/ai/chat',
       prepareSendMessagesRequest: ({ messages }) => ({
@@ -29,6 +30,8 @@ export function AIChatWidget({ isOpen, onClose }: AIChatWidgetProps) {
     }),
   })
 
+  const isLoading = status === 'submitted' || status === 'streaming'
+
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
@@ -37,11 +40,13 @@ export function AIChatWidget({ isOpen, onClose }: AIChatWidgetProps) {
 
   if (!isOpen) return null
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (input.trim()) {
-      handleSubmit(e)
-    }
+    const trimmedInput = chatInput.trim()
+    if (!trimmedInput) return
+
+    await sendMessage({ text: trimmedInput })
+    setChatInput('')
   }
 
   return (
@@ -113,15 +118,15 @@ export function AIChatWidget({ isOpen, onClose }: AIChatWidgetProps) {
       {/* Input */}
       <form onSubmit={onSubmit} className="border-t border-border p-4 flex gap-2">
         <Input
-          value={input}
-          onChange={handleInputChange}
+          value={chatInput}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => setChatInput(event.target.value)}
           placeholder="Digite sua mensagem..."
           disabled={isLoading}
           className="text-sm"
         />
         <Button
           type="submit"
-          disabled={isLoading || !input.trim()}
+          disabled={isLoading || !chatInput.trim()}
           size="icon"
           className="bg-[#F7A71C] text-[#303030] hover:bg-[#E09A1A]"
         >
